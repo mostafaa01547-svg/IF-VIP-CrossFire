@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IF-VIP — Activation</title>
+    <link rel="stylesheet" href="../Assets/theme.css">
+    <style>
+        #licenseKey { text-transform: uppercase; letter-spacing: 1.5px; text-align: center; }
+        .brand-eyebrow {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--accent-purple);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            opacity: 0.85;
+        }
+        .status-pill {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <div class="auth-shell">
+        <div class="auth-card" style="text-align:center;">
+            <div class="brand-eyebrow">Premium Gaming Platform</div>
+            <img src="../Assets/logo.png" alt="IF-VIP" class="if-logo" style="width:170px;">
+            <h2 class="brand-title" style="margin-top:6px;">IF-VIP ACTIVATION</h2>
+            <p class="tagline">Enter your activation code to continue.</p>
+
+            <form id="activationForm">
+                <div class="field">
+                    <label for="licenseKey">Activation Code</label>
+                    <input type="text" id="licenseKey" placeholder="IFVIP-XXXX-XXXX-XXXX-XXXX" required autofocus>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn">ACTIVATE</button>
+                <button type="button" class="btn-secondary" id="buyBtn">BUY LICENSE</button>
+            </form>
+
+            <div id="statusPillWrap">
+                <span class="status-pill" id="statusPill">STATUS: NOT ACTIVATED</span>
+            </div>
+
+            <div class="status-msg" id="statusMsg"></div>
+        </div>
+    </div>
+
+    <div class="app-version-tag">IF-VIP v1.0.0</div>
+
+    <script src="session.js"></script>
+    <script>
+        const { ipcRenderer, shell } = require('electron');
+
+        const statusMsg = document.getElementById('statusMsg');
+        const statusPill = document.getElementById('statusPill');
+        const submitBtn = document.getElementById('submitBtn');
+
+        document.getElementById('buyBtn').addEventListener('click', () => {
+            shell.openExternal('https://example.com/if-vip/buy');
+        });
+
+        document.getElementById('activationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const licenseKey = document.getElementById('licenseKey').value.trim();
+
+            submitBtn.disabled = true;
+            statusPill.textContent = 'VERIFYING...';
+            statusMsg.textContent = 'Verifying activation code...';
+            statusMsg.className = 'status-msg info';
+
+            try {
+                const deviceId = await Session.getDeviceId();
+                const result = await Session.apiPost('/license/activate', {
+                    licenseKey,
+                    deviceId,
+                    deviceLabel: `${navigator.platform || 'Desktop'}`
+                });
+
+                if (result.ok) {
+                    Session.setLicenseKey(licenseKey.toUpperCase());
+                    Session.setLastLicense(result.data.license);
+                    statusPill.textContent = 'STATUS: ACTIVE';
+                    statusMsg.textContent = 'IF-VIP activated successfully!';
+                    statusMsg.className = 'status-msg success';
+                    setTimeout(() => {
+                        ipcRenderer.send('navigate', 'activation-success', { license: result.data.license });
+                    }, 600);
+                } else if (result.status === 429) {
+                    statusPill.textContent = 'STATUS: NOT ACTIVATED';
+                    statusMsg.textContent = 'Too many attempts. Please wait and try again.';
+                    statusMsg.className = 'status-msg error';
+                    submitBtn.disabled = false;
+                } else {
+                    statusPill.textContent = 'STATUS: NOT ACTIVATED';
+                    statusMsg.textContent = (result.data && result.data.message) || 'Invalid activation code.';
+                    statusMsg.className = 'status-msg error';
+                    submitBtn.disabled = false;
+                }
+            } catch (err) {
+                statusPill.textContent = 'STATUS: NOT ACTIVATED';
+                statusMsg.textContent = 'Cannot connect to IF-VIP server.';
+                statusMsg.className = 'status-msg error';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // لو فيه كود متفعّل ومحفوظ قبل كده، نتأكد منه أونلاين ونوجّه المستخدم تلقائي
+        // بدل ما نخليه يدخل الكود تاني كل مرة يفتح فيها التطبيق
+        (async () => {
+            const result = await Session.resolveEntryScreen();
+            if (result.screen === 'activation') {
+                if (result.offline) {
+                    statusMsg.textContent = 'Could not reach the IF-VIP server to verify a saved activation. Enter your code to continue.';
+                    statusMsg.className = 'status-msg error';
+                }
+                return; // نسيب المستخدم في نفس الشاشة يدخل الكود
+            }
+            statusMsg.textContent = 'Restoring your activation...';
+            statusMsg.className = 'status-msg info';
+            ipcRenderer.send('navigate', result.screen, result);
+        })();
+    </script>
+</body>
+</html>

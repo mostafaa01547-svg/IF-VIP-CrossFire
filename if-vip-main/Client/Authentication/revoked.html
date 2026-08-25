@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IF-VIP — License Revoked</title>
+    <link rel="stylesheet" href="../Assets/theme.css">
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    <div class="auth-shell">
+        <div class="auth-card" style="text-align:center;">
+            <div class="center-icon-circle error">✕</div>
+            <h2 class="brand-title" style="color:var(--danger);">YOUR IF-VIP LICENSE HAS BEEN REVOKED</h2>
+            <p class="tagline">Premium functionality has been locked on this device.</p>
+
+            <button class="btn-primary" id="activateBtn">ENTER NEW ACTIVATION CODE</button>
+            <button class="btn-secondary" id="exitBtn">EXIT</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        document.getElementById('activateBtn').addEventListener('click', () => {
+            localStorage.removeItem('ifvip_license_key');
+            ipcRenderer.send('navigate', 'activation');
+        });
+        document.getElementById('exitBtn').addEventListener('click', () => {
+            ipcRenderer.send('app-quit');
+        });
+    </script>
+</body>
+</html>

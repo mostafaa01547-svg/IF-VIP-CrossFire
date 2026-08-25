@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IF-VIP — Activated</title>
+    <link rel="stylesheet" href="../Assets/theme.css">
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    <div class="auth-shell">
+        <div class="auth-card" style="text-align:center;">
+            <div class="center-icon-circle success">✓</div>
+            <h2 class="brand-title" style="color:var(--success);">IF-VIP ACTIVATED SUCCESSFULLY</h2>
+
+            <div class="info-list" id="infoList"></div>
+
+            <button class="btn-primary" id="continueBtn">CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const params = window.ifvipNavParams || {};
+        const license = params.license || {};
+
+        const rows = [
+            ['License Type', license.type || '—'],
+            ['Expiration', license.expiresAt ? new Date(license.expiresAt).toLocaleDateString() : 'Never (Lifetime)'],
+            ['Device', 'AUTHORIZED']
+        ];
+
+        document.getElementById('infoList').innerHTML = rows.map(([k, v]) =>
+            `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+        ).join('');
+
+        document.getElementById('continueBtn').addEventListener('click', () => {
+            ipcRenderer.send('navigate', 'dashboard');
+        });
+    </script>
+</body>
+</html>

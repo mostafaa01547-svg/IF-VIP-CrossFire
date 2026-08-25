@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IF-VIP — Dashboard</title>
+    <link rel="stylesheet" href="../Assets/theme.css">
+    <style>
+        body { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar {
+            width: 240px;
+            background: var(--bg-elevated);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 22px 16px;
+            flex-shrink: 0;
+        }
+        .sidebar img { width: 120px; margin: 0 auto 26px; display: block; }
+        .nav-item {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 11px 14px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .nav-item:hover { background: rgba(139,92,246,0.08); color: var(--text); }
+        .nav-item.active { background: var(--accent-gradient); color: #0a0a12; }
+        .sidebar-footer { margin-top: auto; }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 34px 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .header h1 { font-size: 22px; }
+        .header .sub { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 30px; }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+        }
+        .stat-card h3 { font-size: 12.5px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.3px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 26px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .panel h2 { font-size: 15px; margin-bottom: 14px; }
+        .placeholder-note { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="../Assets/logo.png" alt="IF-VIP">
+        <div class="nav-item active" data-tab="dashboard">Dashboard</div>
+        <div class="nav-item" data-tab="mouse">Mouse Center</div>
+        <div class="nav-item" data-tab="weapons">Weapon Profiles</div>
+        <div class="nav-item" data-tab="aim">Aim Trainer</div>
+        <div class="nav-item" data-tab="recoil">Recoil Trainer</div>
+        <div class="nav-item" data-tab="coach">AI Coach</div>
+        <div class="nav-item" data-tab="sensitivity">Sensitivity Calculator</div>
+        <div class="nav-item" data-tab="crossfire">CrossFire Profile</div>
+        <div class="nav-item" data-tab="performance">Performance</div>
+        <div class="sidebar-footer">
+            <div class="nav-item" data-tab="license">License</div>
+            <div class="nav-item" data-tab="settings">Settings</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1 id="welcomeText">Welcome</h1>
+                <div class="sub">CrossFire Profile: <strong id="cfProfile">Competitive</strong></div>
+            </div>
+            <span class="badge active" id="licenseBadge">LICENSE ACTIVE</span>
+        </div>
+
+        <div id="tabContent"></div>
+    </div>
+
+    <script src="../Authentication/session.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+        const os = require('os');
+
+        let currentLicense = null;
+
+        const tabTemplates = {
+            dashboard: () => `
+                <div class="cards-grid">
+                    <div class="stat-card"><h3>AIM</h3><div class="value">87%</div></div>
+                    <div class="stat-card"><h3>TRACKING</h3><div class="value">91%</div></div>
+                    <div class="stat-card"><h3>REACTION</h3><div class="value">84%</div></div>
+                    <div class="stat-card"><h3>CONSISTENCY</h3><div class="value">89%</div></div>
+                    <div class="stat-card"><h3>OVERALL</h3><div class="value">88%</div></div>
+                </div>
+                <div class="panel">
+                    <h2>System Overview</h2>
+                    <div class="info-list">
+                        <div class="row"><span class="k">CPU</span><span class="v">${cpuInfo()}</span></div>
+                        <div class="row"><span class="k">RAM</span><span class="v">${ramInfo()}</span></div>
+                        <div class="row"><span class="k">Platform</span><span class="v">${os.platform()} (${os.arch()})</span></div>
+                    </div>
+                    <p class="placeholder-note" style="margin-top:10px;">GPU, temperature, and live FPS require a dedicated hardware-monitoring integration and are not wired up yet.</p>
+                </div>
+                <div class="panel">
+                    <h2>CrossFire Detection</h2>
+                    <p class="placeholder-note" id="cfDetectionStatus">Not currently monitoring — CrossFire process detection module is not wired into this build yet.</p>
+                </div>
+            `,
+            mouse: () => stubPanel('Mouse Center', 'Detects your connected mouse and lets you build DPI / polling-rate / sensitivity profiles using legitimate Windows input APIs. This module is scaffolded but not implemented in this build yet.'),
+            weapons: () => stubPanel('Weapon Profiles', 'Create a separate sensitivity + ADS profile per weapon category (AK-47, M4A1, AWM, SMG...). Stored locally as IF-VIP profiles — never modifies CrossFire itself.'),
+            aim: () => stubPanel('Aim Trainer', 'Flick, tracking, precision, reaction-time, and target-switching drills with scoring and history. Training module scaffolding pending.'),
+            recoil: () => stubPanel('Recoil Trainer', 'A controlled practice environment showing weapon recoil patterns so you can manually train control — IF-VIP never auto-compensates recoil in the live game.'),
+            coach: () => stubPanel('AI Coach', 'Analyzes your training history and gives personalized sensitivity/drill recommendations.'),
+            sensitivity: () => stubPanel('Sensitivity Calculator', 'Converts DPI + in-game sensitivity + resolution into effective sensitivity / eDPI and suggests low/med/high profiles.'),
+            crossfire: () => stubPanel('CrossFire Profile', 'Choose a base profile (Competitive, Precision, Sniper, Rifle, SMG, Custom) that drives recommended training + sensitivity presets.'),
+            performance: () => stubPanel('Performance Monitor', 'Lightweight CPU/RAM/latency stats while CrossFire is running.'),
+            license: () => `
+                <div class="panel">
+                    <h2>License</h2>
+                    <div class="info-list">
+                        <div class="row"><span class="k">Activation Code</span><span class="v" id="licKey">—</span></div>
+                        <div class="row"><span class="k">Type</span><span class="v" id="licType">—</span></div>
+                        <div class="row"><span class="k">Status</span><span class="v" id="licStatus">—</span></div>
+                        <div class="row"><span class="k">Expires</span><span class="v" id="licExpires">—</span></div>
+                        <div class="row"><span class="k">Device</span><span class="v">AUTHORIZED (this device)</span></div>
+                    </div>
+                    <button class="btn-secondary" id="changeCodeBtn" style="margin-top:16px;">USE A DIFFERENT ACTIVATION CODE</button>
+                </div>
+            `,
+            settings: () => stubPanel('Settings', 'App preferences, theme, and notification settings.')
+        };
+
+        function stubPanel(title, note) {
+            return `<div class="panel"><h2>${title}</h2><p class="placeholder-note">${note}</p></div>`;
+        }
+
+        function cpuInfo() {
+            const cpus = os.cpus();
+            return cpus && cpus.length ? `${cpus[0].model} (${cpus.length} threads)` : 'Unavailable';
+        }
+        function ramInfo() {
+            const totalGb = (os.totalmem() / (1024 ** 3)).toFixed(1);
+            const freeGb = (os.freemem() / (1024 ** 3)).toFixed(1);
+            return `${freeGb} GB free / ${totalGb} GB total`;
+        }
+
+        function renderTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+            document.getElementById('tabContent').innerHTML = tabTemplates[tab] ? tabTemplates[tab]() : stubPanel(tab, 'Coming soon.');
+
+            if (tab === 'license' && currentLicense) {
+                document.getElementById('licKey').textContent = currentLicense.key || '—';
+                document.getElementById('licType').textContent = currentLicense.type || '—';
+                document.getElementById('licStatus').textContent = (currentLicense.status || '—').toUpperCase();
+                document.getElementById('licExpires').textContent = currentLicense.expiresAt ? new Date(currentLicense.expiresAt).toLocaleDateString() : 'Never (Lifetime)';
+                document.getElementById('changeCodeBtn').addEventListener('click', () => {
+                    Session.clear();
+                    ipcRenderer.send('navigate', 'activation');
+                });
+            }
+        }
+
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.addEventListener('click', () => renderTab(el.dataset.tab));
+        });
+
+        // بمجرد ما الداشبورد بتفتح، بنتأكد تاني من السيرفر ان الجلسة واللايسنس لسه سليمين
+        // (مش بس بنعرض البيانات اللي كانت جاية من شاشة قبلها)
+        (async () => {
+            const result = await Session.resolveEntryScreen();
+            if (result.screen !== 'dashboard') {
+                ipcRenderer.send('navigate', result.screen, result);
+                return;
+            }
+            currentLicense = result.license;
+
+            document.getElementById('welcomeText').textContent = `Welcome back`;
+            const badge = document.getElementById('licenseBadge');
+            badge.textContent = `LICENSE ${(currentLicense.status || 'active').toUpperCase()}`;
+
+            renderTab('dashboard');
+        })();
+    </script>
+</body>
+</html>
