@@ -4,7 +4,7 @@
 // وكل مرة بيتأكد أونلاين من السيرفر إن الكود لسه شغال على الجهاز ده قبل ما يفتح أي حاجة.
 // السيرفر هو مصدر الحقيقة الوحيد لحالة اللايسنس - التخزين المحلي هنا للراحة بس.
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://if-vip-crossfire-production.up.railway.app/api';
 
 const Session = {
     getLicenseKey() {
