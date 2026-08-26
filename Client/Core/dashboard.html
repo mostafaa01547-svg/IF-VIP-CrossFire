@@ -113,7 +113,32 @@
             aim: () => stubPanel('Aim Trainer', 'Flick, tracking, precision, reaction-time, and target-switching drills with scoring and history. Training module scaffolding pending.'),
             recoil: () => stubPanel('Recoil Trainer', 'A controlled practice environment showing weapon recoil patterns so you can manually train control — IF-VIP never auto-compensates recoil in the live game.'),
             coach: () => stubPanel('AI Coach', 'Analyzes your training history and gives personalized sensitivity/drill recommendations.'),
-            sensitivity: () => stubPanel('Sensitivity Calculator', 'Converts DPI + in-game sensitivity + resolution into effective sensitivity / eDPI and suggests low/med/high profiles.'),
+            sensitivity: () => `
+    <div class="panel">
+        <h2>Sensitivity Calculator</h2>
+        <p class="placeholder-note">Enter your mouse DPI and in-game sensitivity to see your effective sensitivity (eDPI), plus suggested Low / Medium / High profiles at your current DPI.</p>
+        <div class="sens-grid">
+            <div class="field">
+                <label>Mouse DPI</label>
+                <input type="number" id="sensDpi" value="800" min="100" step="50">
+            </div>
+            <div class="field">
+                <label>In-Game Sensitivity</label>
+                <input type="number" id="sensGame" value="2.4" min="0.01" step="0.01">
+            </div>
+            <div class="field">
+                <label>ADS Sensitivity</label>
+                <input type="number" id="sensAds" value="1.1" min="0.01" step="0.01">
+            </div>
+        </div>
+        <button class="btn-primary" id="calcSensBtn" style="margin-top:14px;">CALCULATE</button>
+
+        <div class="info-list" id="sensResults" style="margin-top:20px;"></div>
+
+        <h2 style="margin-top:24px;">Suggested Profiles</h2>
+        <div class="info-list" id="sensProfiles"></div>
+    </div>
+`,
             crossfire: () => stubPanel('CrossFire Profile', 'Choose a base profile (Competitive, Precision, Sniper, Rifle, SMG, Custom) that drives recommended training + sensitivity presets.'),
             performance: () => stubPanel('Performance Monitor', 'Lightweight CPU/RAM/latency stats while CrossFire is running.'),
             license: () => `
