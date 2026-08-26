@@ -156,6 +156,30 @@
             `,
             settings: () => stubPanel('Settings', 'App preferences, theme, and notification settings.')
         };
+        function calculateSensitivity() {
+    const dpi = parseFloat(document.getElementById('sensDpi').value) || 0;
+    const gameSens = parseFloat(document.getElementById('sensGame').value) || 0;
+    const adsSens = parseFloat(document.getElementById('sensAds').value) || 0;
+
+    const eDpiHip = dpi * gameSens;
+    const eDpiAds = dpi * adsSens;
+
+    document.getElementById('sensResults').innerHTML = `
+        <div class="row"><span class="k">Effective Sensitivity (eDPI) — Hip Fire</span><span class="v">${eDpiHip.toFixed(0)}</span></div>
+        <div class="row"><span class="k">Effective Sensitivity (eDPI) — ADS</span><span class="v">${eDpiAds.toFixed(0)}</span></div>
+    `;
+
+    const profiles = [
+        { label: 'Low (precision-focused)', target: 1000 },
+        { label: 'Medium (balanced)', target: 1800 },
+        { label: 'High (fast flicks)', target: 3000 }
+    ];
+
+    document.getElementById('sensProfiles').innerHTML = profiles.map(p => {
+        const suggestedGameSens = dpi > 0 ? (p.target / dpi).toFixed(2) : '—';
+        return `<div class="row"><span class="k">${p.label} · eDPI ~${p.target}</span><span class="v">Sensitivity ${suggestedGameSens} @ ${dpi} DPI</span></div>`;
+    }).join('');
+}
 
         function stubPanel(title, note) {
             return `<div class="panel"><h2>${title}</h2><p class="placeholder-note">${note}</p></div>`;
@@ -180,10 +204,15 @@
                 document.getElementById('licType').textContent = currentLicense.type || '—';
                 document.getElementById('licStatus').textContent = (currentLicense.status || '—').toUpperCase();
                 document.getElementById('licExpires').textContent = currentLicense.expiresAt ? new Date(currentLicense.expiresAt).toLocaleDateString() : 'Never (Lifetime)';
-                document.getElementById('changeCodeBtn').addEventListener('click', () => {
+                                document.getElementById('changeCodeBtn').addEventListener('click', () => {
                     Session.clear();
                     ipcRenderer.send('navigate', 'activation');
                 });
+            }
+
+            if (tab === 'sensitivity') {
+                document.getElementById('calcSensBtn').addEventListener('click', calculateSensitivity);
+                calculateSensitivity();
             }
         }
 
