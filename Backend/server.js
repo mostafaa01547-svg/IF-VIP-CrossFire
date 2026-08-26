@@ -19,11 +19,13 @@ const {
     replaceDevice
 } = require('./licenseController');
 const { requireAdmin } = require('./middleware/adminAuth');
+const path = require('path');
 const { activationLimiter, statusLimiter, adminLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(express.json());
 
