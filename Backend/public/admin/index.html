@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IF-VIP Admin</title>
+<style>
+    :root {
+        --bg: #06060a; --card: #14141f; --border: #24243a; --text: #f4f4f8;
+        --muted: #9494ab; --purple: #8b5cf6; --blue: #3b82f6;
+        --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+    }
+    * { box-sizing: border-box; }
+    body {
+        background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif;
+        margin: 0; padding: 24px; min-height: 100vh;
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+    .card {
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 20px; margin-bottom: 20px;
+    }
+    .card h2 { font-size: 15px; margin: 0 0 14px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; margin-top: 10px; }
+    input, select {
+        width: 100%; padding: 9px 11px; background: #0d0d15; border: 1px solid var(--border);
+        border-radius: 8px; color: var(--text); font-size: 13px;
+    }
+    button {
+        cursor: pointer; border: none; border-radius: 8px; padding: 9px 16px;
+        font-size: 13px; font-weight: 600; margin-top: 12px; margin-right: 6px;
+    }
+    .btn-primary { background: linear-gradient(120deg, var(--purple), var(--blue)); color: #0a0a12; }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-warn { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+    .btn-ok { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .pill { padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .pill.active { background: rgba(34,197,94,0.15); color: var(--green); }
+    .pill.expired { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .pill.revoked, .pill.suspended { background: rgba(239,68,68,0.15); color: var(--red); }
+    .row-actions button { margin: 2px 3px 2px 0; padding: 4px 9px; font-size: 11px; }
+    #gateScreen { max-width: 380px; margin: 80px auto; text-align: center; }
+    #msg { font-size: 12.5px; margin-top: 10px; min-height: 16px; }
+    #msg.error { color: var(--red); } #msg.success { color: var(--green); }
+    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
+    .flex > div { flex: 1; min-width: 140px; }
+    code { background: #0d0d15; padding: 1px 6px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<div id="gateScreen">
+    <h1>IF-VIP Admin</h1>
+    <div class="sub">Enter your admin key to continue</div>
+    <div class="card">
+        <label for="adminKeyInput">Admin API Key</label>
+        <input type="password" id="adminKeyInput" placeholder="ADMIN_API_KEY">
+        <button class="btn-primary" onclick="unlock()" style="width:100%;">UNLOCK</button>
+        <div id="gateMsg" style="font-size:12px;color:var(--red);margin-top:8px;"></div>
+    </div>
+</div>
+
+<div id="mainApp" style="display:none; max-width: 900px; margin: 0 auto;">
+    <h1>IF-VIP Admin</h1>
+    <div class="sub">License &amp; device management</div>
+
+    <div class="card">
+        <h2>Generate Activation Code</h2>
+        <div class="flex">
+            <div>
+                <label>License Type</label>
+                <select id="genType">
+                    <option>3-Day Trial</option>
+                    <option>1 Week</option>
+                    <option>1 Month</option>
+                    <option>1 Year</option>
+                    <option>Lifetime</option>
+                </select>
+            </div>
+            <div>
+                <label>Device Limit</label>
+                <input type="number" id="genDeviceLimit" value="1" min="1">
+            </div>
+        </div>
+        <button class="btn-primary" onclick="generateLicense()">GENERATE CODE</button>
+        <div id="msg"></div>
+    </div>
+
+    <div class="card">
+        <h2>Licenses <button class="btn-secondary" style="margin:0; padding:4px 10px; font-size:11px;" onclick="loadLicenses()">↻ Refresh</button></h2>
+        <div id="summary" class="sub"></div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Type</th><th>Status</th><th>Expires</th><th>Limit</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="licensesBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Devices for a License</h2>
+        <div class="flex">
+            <div style="flex:2;">
+                <label>Activation Code</label>
+                <input type="text" id="deviceLicenseKey" placeholder="IFVIP-XXXX-XXXX-XXXX-XXXX">
+            </div>
+        </div>
+        <button class="btn-secondary" onclick="loadDevices()">LOAD DEVICES</button>
+        <table>
+            <thead><tr><th>Device ID</th><th>Label</th><th>Status</th><th>Last Seen</th><th>Actions</th></tr></thead>
+            <tbody id="devicesBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin + '/api';
+let ADMIN_KEY = '';
+
+function unlock() {
+    ADMIN_KEY = document.getElementById('adminKeyInput').value.trim();
+    if (!ADMIN_KEY) return;
+    document.getElementById('gateScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadLicenses();
+}
+
+async function api(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY, ...(options.headers || {}) }
+    });
+    const data = await res.json().catch(() => null);
+    if (res.status === 401) {
+        alert('Admin key rejected. Reload the page and try again.');
+        throw new Error('unauthorized');
+    }
+    return { ok: res.ok, status: res.status, data };
+}
+
+function showMsg(text, isError) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = isError ? 'error' : 'success';
+    setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+async function generateLicense() {
+    const licenseType = document.getElementById('genType').value;
+    const deviceLimit = document.getElementById('genDeviceLimit').value;
+    const { ok, data } = await api('/admin/license/generate', {
+        method: 'POST',
+        body: JSON.stringify({ licenseType, deviceLimit })
+    });
+    if (ok) {
+        showMsg(`Generated: ${data.license.key}`, false);
+        loadLicenses();
+    } else {
+        showMsg((data && data.message) || 'Failed to generate license.', true);
+    }
+}
+
+async function loadLicenses() {
+    const { ok, data } = await api('/admin/licenses');
+    if (!ok) return;
+    document.getElementById('summary').textContent =
+        `Total: ${data.summary.total} · Active: ${data.summary.active || 0} · Expired: ${data.summary.expired || 0} · Revoked: ${data.summary.revoked || 0} · Suspended: ${data.summary.suspended || 0}`;
+
+    const rows = data.licenses.map(l => `
+        <tr>
+            <td><code>${l.key}</code></td>
+            <td>${l.type}</td>
+            <td><span class="pill ${l.status}">${l.status.toUpperCase()}</span></td>
+            <td>${l.expiresAt ? new Date(l.expiresAt).toLocaleDateString() : 'Lifetime'}</td>
+            <td>${l.deviceLimit}</td>
+            <td class="row-actions">
+                <button class="btn-danger" onclick="licenseAction('${l.key}','revoke')">Revoke</button>
+                <button class="btn-warn" onclick="licenseAction('${l.key}','suspend')">Suspend</button>
+                <button class="btn-ok" onclick="licenseAction('${l.key}','reactivate')">Reactivate</button>
+                <button class="btn-secondary" onclick="extendLicense('${l.key}')">+30d</button>
+            </td>
+        </tr>
+    `).join('');
+    document.getElementById('licensesBody').innerHTML = rows || '<tr><td colspan="6" style="color:var(--muted);">No licenses yet.</td></tr>';
+}
+
+async function licenseAction(key, action) {
+    const { ok, data } = await api(`/admin/license/${encodeURIComponent(key)}/${action}`, { method: 'POST' });
+    showMsg((data && data.message) || (ok ? 'Done.' : 'Failed.'), !ok);
+    loadLicenses();
+}
+
+async function extendLicense(key) {
+    const { ok, data } = await api(`/admin/license/${encodeURIComponent(key)}/extend`, {
+        method: 'POST', body: JSON.stringify({ days: 30 })
+    });
+    showMsg((data && data.message) || (ok ? 'Extended.' : 'Failed.'), !ok);
+    loadLicenses();
+}
+
+async function loadDevices() {
+    const key = document.getElementById('deviceLicenseKey').value.trim();
+    if (!key) return;
+    const { ok, data } = await api(`/admin/license/${encodeURIComponent(key)}/devices`);
+    if (!ok) { showMsg((data && data.message) || 'License not found.', true); return; }
+
+    const rows = data.devices.map(d => `
+        <tr>
+            <td><code>${d.device_id}</code></td>
+            <td>${d.device_label || '—'}</td>
+            <td><span class="pill ${d.status === 'active' ? 'active' : 'revoked'}">${d.status.toUpperCase()}</span></td>
+            <td>${new Date(d.last_seen).toLocaleString()}</td>
+            <td class="row-actions">
+                <button class="btn-danger" onclick="deactivateDevice('${key}','${d.device_id}')">Deactivate</button>
+            </td>
+        </tr>
+    `).join('');
+    document.getElementById('devicesBody').innerHTML = rows || '<tr><td colspan="5" style="color:var(--muted);">No devices yet.</td></tr>';
+}
+
+async function deactivateDevice(licenseKey, deviceId) {
+    const { ok, data } = await api(`/admin/license/${encodeURIComponent(licenseKey)}/devices/${encodeURIComponent(deviceId)}/deactivate`, { method: 'POST' });
+    showMsg((data && data.message) || (ok ? 'Deactivated.' : 'Failed.'), !ok);
+    loadDevices();
+}
+</script>
+</body>
+</html>
