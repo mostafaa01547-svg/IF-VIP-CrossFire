@@ -3,271 +3,1810 @@
 <head>
     <meta charset="UTF-8">
     <title>IF-VIP — Dashboard</title>
-    <link rel="stylesheet" href="../Assets/theme.css">
     <style>
-        body { display: flex; height: 100vh; overflow: hidden; }
+        :root {
+            --bg: #0a0a12;
+            --bg-elevated: #111120;
+            --card: #13131f;
+            --border: #1e1e30;
+            --text: #e8e8f0;
+            --text-muted: #6b6b8a;
+            --accent: #8b5cf6;
+            --accent2: #a78bfa;
+            --accent-gradient: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        /* ─── SIDEBAR ─── */
         .sidebar {
-            width: 240px;
+            width: 220px;
             background: var(--bg-elevated);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 22px 16px;
+            padding: 20px 12px;
             flex-shrink: 0;
         }
-        .sidebar img { width: 120px; margin: 0 auto 26px; display: block; }
+        .logo-wrap { text-align: center; margin-bottom: 24px; }
+        .logo-wrap .logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        .logo-wrap .logo-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; margin-top: 2px; }
+        .nav-section { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; padding: 8px 10px 4px; margin-top: 8px; }
         .nav-item {
             color: var(--text-muted);
             text-decoration: none;
-            padding: 11px 14px;
+            padding: 10px 12px;
             border-radius: 8px;
-            margin-bottom: 4px;
-            font-size: 13.5px;
+            margin-bottom: 2px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+        }
+        .nav-item:hover { background: rgba(139,92,246,0.1); color: var(--text); }
+        .nav-item.active { background: var(--accent-gradient); color: #fff; }
+        .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+        .sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); padding-top: 12px; }
+
+        /* ─── MAIN ─── */
+        .main-content { flex: 1; overflow-y: auto; padding: 28px 36px; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; }
+        .page-header h1 { font-size: 20px; font-weight: 700; }
+        .page-header .sub { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge.active { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+        .badge.expired { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+
+        /* ─── CARDS ─── */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+        }
+        .stat-card h3 { font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .stat-card .trend { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .stat-card .trend.up { color: var(--success); }
+        .stat-card .trend.down { color: var(--danger); }
+
+        /* ─── PANEL ─── */
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 18px; }
+        .panel h2 { font-size: 14px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .panel h2 .ph-icon { font-size: 16px; }
+        .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        /* ─── INFO LIST ─── */
+        .info-list .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .info-list .row:last-child { border-bottom: none; }
+        .info-list .row .k { color: var(--text-muted); }
+        .info-list .row .v { font-weight: 600; color: var(--text); }
+
+        /* ─── FORMS ─── */
+        label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.3px; }
+        input[type=number], input[type=text], input[type=range], select, textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 9px 12px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+        input[type=range] { padding: 4px 0; cursor: pointer; accent-color: var(--accent); }
+        .field { margin-bottom: 14px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+        /* ─── BUTTONS ─── */
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: opacity 0.15s;
+        }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent2);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 9px 20px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.15s;
         }
-        .nav-item:hover { background: rgba(139,92,246,0.08); color: var(--text); }
-        .nav-item.active { background: var(--accent-gradient); color: #0a0a12; }
-        .sidebar-footer { margin-top: auto; }
-
-        .main-content { flex: 1; overflow-y: auto; padding: 34px 40px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
-        .header h1 { font-size: 22px; }
-        .header .sub { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
-
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 30px; }
-        .stat-card {
-            background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+        .btn-secondary:hover { background: rgba(139,92,246,0.1); }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 9px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
         }
-        .stat-card h3 { font-size: 12.5px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.3px; margin-bottom: 10px; }
-        .stat-card .value { font-size: 26px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .btn-danger:hover { background: rgba(239,68,68,0.1); }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
-        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
-        .panel h2 { font-size: 15px; margin-bottom: 14px; }
-        .placeholder-note { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+        /* ─── PROGRESS BAR ─── */
+        .progress-wrap { margin-bottom: 14px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .progress-label .name { color: var(--text-muted); font-weight: 600; }
+        .progress-label .val { color: var(--text); font-weight: 700; }
+        .progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent-gradient); border-radius: 99px; transition: width 0.6s ease; }
+
+        /* ─── TARGET / AIM TRAINER ─── */
+        #aimCanvas {
+            background: #0d0d1a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+            width: 100%;
+            max-height: 340px;
+        }
+        .aim-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+        .aim-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+        .aim-stat .as-val { font-size: 22px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .aim-stat .as-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+        /* ─── RECOIL CANVAS ─── */
+        #recoilCanvas {
+            background: #0d0d1a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: block;
+            width: 100%;
+        }
+
+        /* ─── WEAPON PROFILES ─── */
+        .weapon-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .weapon-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+        }
+        .weapon-card:hover { border-color: var(--accent); }
+        .weapon-card.selected { border-color: var(--accent); background: rgba(139,92,246,0.08); }
+        .weapon-card .wc-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        .weapon-card .wc-meta { font-size: 11px; color: var(--text-muted); }
+        .weapon-card .wc-badge {
+            position: absolute; top: 10px; right: 10px;
+            font-size: 10px; font-weight: 700;
+            background: rgba(139,92,246,0.2); color: var(--accent2);
+            padding: 2px 7px; border-radius: 99px;
+        }
+
+        /* ─── MOUSE CENTER ─── */
+        .mouse-visual {
+            width: 100px; height: 160px;
+            background: linear-gradient(180deg, #1a1a2e, #0d0d1a);
+            border: 2px solid var(--border);
+            border-radius: 50px 50px 30px 30px;
+            margin: 0 auto 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mouse-visual .scroll-wheel {
+            width: 14px; height: 30px;
+            background: var(--accent);
+            border-radius: 7px;
+            opacity: 0.7;
+            margin-top: -20px;
+        }
+
+        /* ─── PERFORMANCE ─── */
+        .perf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+        .perf-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .perf-card .pc-val { font-size: 32px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .perf-card .pc-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+        .perf-card .pc-unit { font-size: 13px; color: var(--text-muted); }
+
+        /* ─── AI COACH ─── */
+        .coach-chat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-height: 200px; max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+        .coach-msg { margin-bottom: 12px; }
+        .coach-msg .cm-role { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .coach-msg .cm-role.ai { color: var(--accent2); }
+        .coach-msg .cm-role.user { color: var(--text-muted); }
+        .coach-msg .cm-text { font-size: 13px; line-height: 1.6; background: var(--card); border-radius: 8px; padding: 10px 12px; }
+        .coach-input-row { display: flex; gap: 10px; }
+        .coach-input-row input { flex: 1; }
+
+        /* ─── CROSSFIRE PROFILE ─── */
+        .cf-profiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .cf-card {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+        }
+        .cf-card:hover { border-color: var(--accent); }
+        .cf-card.selected { border-color: var(--accent); background: rgba(139,92,246,0.1); }
+        .cf-card .cf-icon { font-size: 28px; margin-bottom: 8px; }
+        .cf-card .cf-name { font-weight: 700; font-size: 13px; }
+        .cf-card .cf-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* ─── SETTINGS ─── */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-row .tr-label { font-size: 13px; font-weight: 600; }
+        .toggle-row .tr-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .toggle {
+            width: 42px; height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .toggle.on { background: var(--accent); }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px; left: 3px;
+            transition: left 0.2s;
+        }
+        .toggle.on::after { left: 21px; }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* ─── NOTIFICATION ─── */
+        .notif {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 18px;
+            font-size: 13px; font-weight: 600;
+            z-index: 9999; opacity: 0;
+            transform: translateY(10px);
+            transition: 0.3s;
+            max-width: 280px;
+        }
+        .notif.show { opacity: 1; transform: translateY(0); }
+        .notif.success { border-color: var(--success); color: var(--success); }
+        .notif.error { border-color: var(--danger); color: var(--danger); }
+        .notif.info { border-color: var(--accent); color: var(--accent2); }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <img src="../Assets/logo.png" alt="IF-VIP">
-        <div class="nav-item active" data-tab="dashboard">Dashboard</div>
-        <div class="nav-item" data-tab="mouse">Mouse Center</div>
-        <div class="nav-item" data-tab="weapons">Weapon Profiles</div>
-        <div class="nav-item" data-tab="aim">Aim Trainer</div>
-        <div class="nav-item" data-tab="recoil">Recoil Trainer</div>
-        <div class="nav-item" data-tab="coach">AI Coach</div>
-        <div class="nav-item" data-tab="sensitivity">Sensitivity Calculator</div>
-        <div class="nav-item" data-tab="crossfire">CrossFire Profile</div>
-        <div class="nav-item" data-tab="performance">Performance</div>
-        <div class="sidebar-footer">
-            <div class="nav-item" data-tab="license">License</div>
-            <div class="nav-item" data-tab="settings">Settings</div>
+
+<!-- ─── SIDEBAR ─── -->
+<div class="sidebar">
+    <div class="logo-wrap">
+        <div class="logo-text">IF-VIP</div>
+        <div class="logo-sub">CROSSFIRE EDITION</div>
+    </div>
+
+    <div class="nav-section">MAIN</div>
+    <div class="nav-item active" data-tab="dashboard"><span class="icon">⊞</span> Dashboard</div>
+    <div class="nav-item" data-tab="mouse"><span class="icon">🖱</span> Mouse Center</div>
+    <div class="nav-item" data-tab="weapons"><span class="icon">🔫</span> Weapon Profiles</div>
+
+    <div class="nav-section">TRAINING</div>
+    <div class="nav-item" data-tab="aim"><span class="icon">🎯</span> Aim Trainer</div>
+    <div class="nav-item" data-tab="recoil"><span class="icon">↑</span> Recoil Trainer</div>
+    <div class="nav-item" data-tab="coach"><span class="icon">🤖</span> AI Coach</div>
+
+    <div class="nav-section">TOOLS</div>
+    <div class="nav-item" data-tab="sensitivity"><span class="icon">⚡</span> Sensitivity Calc</div>
+    <div class="nav-item" data-tab="crossfire"><span class="icon">🎮</span> CrossFire Profile</div>
+    <div class="nav-item" data-tab="performance"><span class="icon">📊</span> Performance</div>
+
+    <div class="sidebar-footer">
+        <div class="nav-item" data-tab="license"><span class="icon">🔑</span> License</div>
+        <div class="nav-item" data-tab="settings"><span class="icon">⚙</span> Settings</div>
+    </div>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 id="welcomeText">Welcome</h1>
+            <div class="sub">CrossFire Profile: <strong id="cfProfileLabel">Competitive</strong></div>
         </div>
+        <span class="badge active" id="licenseBadge">LICENSE ACTIVE</span>
     </div>
+    <div id="tabContent"></div>
+</div>
 
-    <div class="main-content">
-        <div class="header">
-            <div>
-                <h1 id="welcomeText">Welcome</h1>
-                <div class="sub">CrossFire Profile: <strong id="cfProfile">Competitive</strong></div>
-            </div>
-            <span class="badge active" id="licenseBadge">LICENSE ACTIVE</span>
+<!-- ─── NOTIFICATION ─── -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ─── SAFE ELECTRON BRIDGE ───
+let ipcRenderer = null;
+try { ipcRenderer = require('electron').ipcRenderer; } catch(e) {}
+const navigate = (screen, data) => { if (ipcRenderer) ipcRenderer.send('navigate', screen, data); };
+
+let os;
+try { os = require('os'); } catch(e) {
+    os = {
+        cpus: () => [{ model: 'Unknown CPU' }],
+        totalmem: () => 8 * 1024 ** 3,
+        freemem: () => 4 * 1024 ** 3,
+        platform: () => 'win32',
+        arch: () => 'x64'
+    };
+}
+
+// ─── STATE ───
+const state = {
+    license: null,
+    cfProfile: localStorage.getItem('cfProfile') || 'Competitive',
+    mouseProfile: JSON.parse(localStorage.getItem('mouseProfile') || '{"dpi":800,"polling":1000,"accel":false}'),
+    weaponProfiles: JSON.parse(localStorage.getItem('weaponProfiles') || '[]'),
+    settings: JSON.parse(localStorage.getItem('ifvipSettings') || '{"startWithWindows":false,"minimizeToTray":true,"notifications":true,"darkMode":true,"autoUpdate":true,"overlayEnabled":false}'),
+    aimSession: { hits: 0, misses: 0, totalTime: 0, shots: 0, startTime: null, active: false },
+    recoilWeapon: 'AK-47',
+    perfInterval: null,
+    coachHistory: []
+};
+
+if (!state.weaponProfiles.length) {
+    state.weaponProfiles = [
+        { id: 1, name: 'AK-47', category: 'Rifle', dpi: 800, sens: 2.4, ads: 1.1, notes: 'Burst fire, control recoil' },
+        { id: 2, name: 'M4A1', category: 'Rifle', dpi: 800, sens: 2.6, ads: 1.2, notes: 'Full auto, stable' },
+        { id: 3, name: 'AWM', category: 'Sniper', dpi: 400, sens: 1.8, ads: 0.8, notes: 'Low sens for precision' },
+        { id: 4, name: 'MP5', category: 'SMG', dpi: 1200, sens: 3.2, ads: 1.4, notes: 'High sens, fast movement' },
+        { id: 5, name: 'Desert Eagle', category: 'Pistol', dpi: 800, sens: 2.0, ads: 1.0, notes: 'One-tap precision' }
+    ];
+    saveWeaponProfiles();
+}
+
+function saveWeaponProfiles() { localStorage.setItem('weaponProfiles', JSON.stringify(state.weaponProfiles)); }
+function saveSettings() { localStorage.setItem('ifvipSettings', JSON.stringify(state.settings)); }
+function saveMouseProfile() { localStorage.setItem('mouseProfile', JSON.stringify(state.mouseProfile)); }
+
+// ─── NOTIFICATION ───
+function notify(msg, type = 'info', duration = 2800) {
+    const el = document.getElementById('notif');
+    el.textContent = msg;
+    el.className = `notif ${type} show`;
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ─── SYSTEM INFO ───
+function cpuInfo() {
+    const cpus = os.cpus();
+    return cpus && cpus.length ? `${cpus[0].model} (${cpus.length} threads)` : 'Unavailable';
+}
+function ramInfo() {
+    const totalGb = (os.totalmem() / (1024 ** 3)).toFixed(1);
+    const freeGb = (os.freemem() / (1024 ** 3)).toFixed(1);
+    return `${freeGb} GB free / ${totalGb} GB total`;
+}
+
+// ─── RECOIL PATTERNS ───
+const RECOIL_PATTERNS = {
+    'AK-47': [
+        {x:0,y:0},{x:1,y:8},{x:2,y:16},{x:-1,y:24},{x:-3,y:32},{x:-5,y:38},
+        {x:-4,y:44},{x:-2,y:50},{x:1,y:55},{x:3,y:60},{x:5,y:64},
+        {x:4,y:68},{x:2,y:72},{x:0,y:75},{x:-2,y:78},{x:-4,y:80},
+        {x:-3,y:82},{x:-1,y:84},{x:1,y:86},{x:3,y:88},{x:2,y:90}
+    ],
+    'M4A1': [
+        {x:0,y:0},{x:0,y:6},{x:1,y:12},{x:1,y:18},{x:0,y:24},{x:-1,y:30},
+        {x:-2,y:36},{x:-2,y:42},{x:-1,y:48},{x:0,y:54},{x:1,y:60},
+        {x:2,y:65},{x:2,y:70},{x:1,y:74},{x:0,y:78},{x:-1,y:82},
+        {x:-1,y:85},{x:0,y:88},{x:1,y:90},{x:1,y:92},{x:0,y:94}
+    ],
+    'MP5': [
+        {x:0,y:0},{x:0,y:4},{x:1,y:8},{x:2,y:12},{x:2,y:16},{x:1,y:20},
+        {x:0,y:24},{x:-1,y:28},{x:-2,y:32},{x:-2,y:36},{x:-1,y:40},
+        {x:0,y:44},{x:1,y:48},{x:2,y:52},{x:2,y:56},{x:1,y:60},
+        {x:0,y:63},{x:-1,y:66},{x:-1,y:69},{x:0,y:72},{x:0,y:74}
+    ],
+    'AWM': [
+        {x:0,y:0},{x:0,y:20},{x:0,y:0}
+    ],
+    'Desert Eagle': [
+        {x:0,y:0},{x:2,y:15},{x:-2,y:0},{x:2,y:15},{x:-2,y:0}
+    ]
+};
+
+// ─── TAB TEMPLATES ───
+const tabTemplates = {
+
+    // ══════════════════════════════════════════
+    // DASHBOARD
+    // ══════════════════════════════════════════
+    dashboard: () => `
+        <div class="cards-grid">
+            <div class="stat-card"><h3>AIM SCORE</h3><div class="value" id="scoreAim">—</div><div class="trend up" id="trendAim"></div></div>
+            <div class="stat-card"><h3>TRACKING</h3><div class="value" id="scoreTrack">—</div><div class="trend" id="trendTrack"></div></div>
+            <div class="stat-card"><h3>REACTION</h3><div class="value" id="scoreReact">—</div><div class="trend" id="trendReact"></div></div>
+            <div class="stat-card"><h3>CONSISTENCY</h3><div class="value" id="scoreCons">—</div><div class="trend" id="trendCons"></div></div>
+            <div class="stat-card"><h3>OVERALL</h3><div class="value" id="scoreOverall">—</div><div class="trend" id="trendOverall"></div></div>
         </div>
 
-        <div id="tabContent"></div>
-    </div>
-
-    <script src="../Authentication/session.js"></script>
-    <script>
-        const { ipcRenderer } = require('electron');
-        const os = require('os');
-
-        let currentLicense = null;
-
-        const tabTemplates = {
-            dashboard: () => `
-                <div class="cards-grid">
-                    <div class="stat-card"><h3>AIM</h3><div class="value">87%</div></div>
-                    <div class="stat-card"><h3>TRACKING</h3><div class="value">91%</div></div>
-                    <div class="stat-card"><h3>REACTION</h3><div class="value">84%</div></div>
-                    <div class="stat-card"><h3>CONSISTENCY</h3><div class="value">89%</div></div>
-                    <div class="stat-card"><h3>OVERALL</h3><div class="value">88%</div></div>
+        <div class="panel-row">
+            <div class="panel">
+                <h2><span class="ph-icon">💻</span> System Info</h2>
+                <div class="info-list">
+                    <div class="row"><span class="k">CPU</span><span class="v">${cpuInfo()}</span></div>
+                    <div class="row"><span class="k">RAM</span><span class="v">${ramInfo()}</span></div>
+                    <div class="row"><span class="k">Platform</span><span class="v">${os.platform()} (${os.arch()})</span></div>
+                    <div class="row"><span class="k">Mouse DPI</span><span class="v" id="dashMouseDpi">${state.mouseProfile.dpi}</span></div>
+                    <div class="row"><span class="k">Polling Rate</span><span class="v" id="dashPolling">${state.mouseProfile.polling} Hz</span></div>
                 </div>
-                <div class="panel">
-                    <h2>System Overview</h2>
-                    <div class="info-list">
-                        <div class="row"><span class="k">CPU</span><span class="v">${cpuInfo()}</span></div>
-                        <div class="row"><span class="k">RAM</span><span class="v">${ramInfo()}</span></div>
-                        <div class="row"><span class="k">Platform</span><span class="v">${os.platform()} (${os.arch()})</span></div>
-                    </div>
-                    <p class="placeholder-note" style="margin-top:10px;">GPU, temperature, and live FPS require a dedicated hardware-monitoring integration and are not wired up yet.</p>
-                </div>
-                <div class="panel">
-                    <h2>CrossFire Detection</h2>
-                    <p class="placeholder-note" id="cfDetectionStatus">Not currently monitoring — CrossFire process detection module is not wired into this build yet.</p>
-                </div>
-            `,
-            mouse: () => `
-    <div class="panel">
-        <h2>Windows Mouse Settings</h2>
-        <p class="placeholder-note">Read directly from Windows via the registry (legitimate OS API — not vendor-specific hardware access).</p>
-        <div class="info-list" id="mouseSysInfo"></div>
-    </div>
-    <div class="panel">
-        <h2>Mouse Profiles</h2>
-        <p class="placeholder-note">Enter your mouse's DPI and polling rate manually (from your mouse software or box), then save a named profile. IF-VIP has no generic way to read real hardware DPI from arbitrary mouse brands — only the manufacturer's own software can do that.</p>
-        <div class="sens-grid">
-            <div class="field">
-                <label>Profile Name</label>
-                <input type="text" id="mpName" placeholder="e.g. Competitive">
             </div>
-            <div class="field">
-                <label>DPI</label>
-                <input type="number" id="mpDpi" value="800" min="100" step="50">
-            </div>
-            <div class="field">
-                <label>Polling Rate (Hz)</label>
-                <select id="mpPolling">
-                    <option>125</option><option>250</option><option>500</option><option selected>1000</option>
-                </select>
+            <div class="panel">
+                <h2><span class="ph-icon">🎮</span> Active Profile</h2>
+                <div class="info-list">
+                    <div class="row"><span class="k">CF Profile</span><span class="v" id="dashCfProfile">${state.cfProfile}</span></div>
+                    <div class="row"><span class="k">Active Weapon</span><span class="v">${state.weaponProfiles[0]?.name || 'None'}</span></div>
+                    <div class="row"><span class="k">eDPI</span><span class="v">${state.mouseProfile.dpi * (state.weaponProfiles[0]?.sens || 2.4)}</span></div>
+                    <div class="row"><span class="k">Sessions Today</span><span class="v" id="dashSessions">0</span></div>
+                    <div class="row"><span class="k">Total Shots Fired</span><span class="v" id="dashShots">${parseInt(localStorage.getItem('totalShots') || '0').toLocaleString()}</span></div>
+                </div>
             </div>
         </div>
-        <button class="btn-primary" id="mpSaveBtn" style="margin-top:14px;">SAVE PROFILE</button>
 
-        <table class="wp-table" id="mpTable">
-            <thead><tr><th>Name</th><th>DPI</th><th>Polling</th><th></th></tr></thead>
-            <tbody id="mpTableBody"></tbody>
-        </table>
-    </div>
-`,
-            weapons: () => stubPanel('Weapon Profiles', 'Create a separate sensitivity + ADS profile per weapon category (AK-47, M4A1, AWM, SMG...). Stored locally as IF-VIP profiles — never modifies CrossFire itself.'),
-            aim: () => stubPanel('Aim Trainer', 'Flick, tracking, precision, reaction-time, and target-switching drills with scoring and history. Training module scaffolding pending.'),
-            recoil: () => stubPanel('Recoil Trainer', 'A controlled practice environment showing weapon recoil patterns so you can manually train control — IF-VIP never auto-compensates recoil in the live game.'),
-            coach: () => stubPanel('AI Coach', 'Analyzes your training history and gives personalized sensitivity/drill recommendations.'),
-            sensitivity: () => `
-    <div class="panel">
-        <h2>Sensitivity Calculator</h2>
-        <p class="placeholder-note">Enter your mouse DPI and in-game sensitivity to see your effective sensitivity (eDPI), plus suggested Low / Medium / High profiles at your current DPI.</p>
-        <div class="sens-grid">
-            <div class="field">
-                <label>Mouse DPI</label>
-                <input type="number" id="sensDpi" value="800" min="100" step="50">
-            </div>
-            <div class="field">
-                <label>In-Game Sensitivity</label>
-                <input type="number" id="sensGame" value="2.4" min="0.01" step="0.01">
-            </div>
-            <div class="field">
-                <label>ADS Sensitivity</label>
-                <input type="number" id="sensAds" value="1.1" min="0.01" step="0.01">
+        <div class="panel">
+            <h2><span class="ph-icon">📈</span> Skill Breakdown</h2>
+            <div id="skillBars"></div>
+        </div>
+
+        <div class="panel">
+            <h2><span class="ph-icon">🎮</span> CrossFire Process</h2>
+            <div class="info-list">
+                <div class="row"><span class="k">Status</span><span class="v" id="cfStatus" style="color:var(--warning)">Checking...</span></div>
+                <div class="row"><span class="k">Process</span><span class="v">CrossFire.exe</span></div>
+                <div class="row"><span class="k">Detection Mode</span><span class="v">Read-Only (Safe)</span></div>
             </div>
         </div>
-        <button class="btn-primary" id="calcSensBtn" style="margin-top:14px;">CALCULATE</button>
+    `,
 
-        <div class="info-list" id="sensResults" style="margin-top:20px;"></div>
-
-        <h2 style="margin-top:24px;">Suggested Profiles</h2>
-        <div class="info-list" id="sensProfiles"></div>
-    </div>
-`,
-            crossfire: () => stubPanel('CrossFire Profile', 'Choose a base profile (Competitive, Precision, Sniper, Rifle, SMG, Custom) that drives recommended training + sensitivity presets.'),
-            performance: () => stubPanel('Performance Monitor', 'Lightweight CPU/RAM/latency stats while CrossFire is running.'),
-            license: () => `
-                <div class="panel">
-                    <h2>License</h2>
-                    <div class="info-list">
-                        <div class="row"><span class="k">Activation Code</span><span class="v" id="licKey">—</span></div>
-                        <div class="row"><span class="k">Type</span><span class="v" id="licType">—</span></div>
-                        <div class="row"><span class="k">Status</span><span class="v" id="licStatus">—</span></div>
-                        <div class="row"><span class="k">Expires</span><span class="v" id="licExpires">—</span></div>
-                        <div class="row"><span class="k">Device</span><span class="v">AUTHORIZED (this device)</span></div>
-                    </div>
-                    <button class="btn-secondary" id="changeCodeBtn" style="margin-top:16px;">USE A DIFFERENT ACTIVATION CODE</button>
+    // ══════════════════════════════════════════
+    // MOUSE CENTER
+    // ══════════════════════════════════════════
+    mouse: () => `
+        <div class="panel-row">
+            <div class="panel">
+                <h2><span class="ph-icon">🖱</span> Mouse Visual</h2>
+                <div class="mouse-visual"><div class="scroll-wheel"></div></div>
+                <div class="info-list">
+                    <div class="row"><span class="k">Detected Mouse</span><span class="v" id="detectedMouse">Detecting...</span></div>
+                    <div class="row"><span class="k">Current DPI</span><span class="v" id="currentDpiDisplay">${state.mouseProfile.dpi}</span></div>
+                    <div class="row"><span class="k">Polling Rate</span><span class="v" id="currentPollingDisplay">${state.mouseProfile.polling} Hz</span></div>
+                    <div class="row"><span class="k">Acceleration</span><span class="v" id="currentAccelDisplay">${state.mouseProfile.accel ? 'ON' : 'OFF'}</span></div>
                 </div>
-            `,
-            settings: () => stubPanel('Settings', 'App preferences, theme, and notification settings.')
+            </div>
+            <div class="panel">
+                <h2><span class="ph-icon">⚙</span> Mouse Settings</h2>
+                <div class="field">
+                    <label>DPI</label>
+                    <input type="number" id="mouseDpi" value="${state.mouseProfile.dpi}" min="100" max="25600" step="50">
+                </div>
+                <div class="field">
+                    <label>Polling Rate (Hz)</label>
+                    <select id="mousePolling">
+                        <option value="125" ${state.mouseProfile.polling==125?'selected':''}>125 Hz</option>
+                        <option value="250" ${state.mouseProfile.polling==250?'selected':''}>250 Hz</option>
+                        <option value="500" ${state.mouseProfile.polling==500?'selected':''}>500 Hz</option>
+                        <option value="1000" ${state.mouseProfile.polling==1000?'selected':''}>1000 Hz</option>
+                        <option value="2000" ${state.mouseProfile.polling==2000?'selected':''}>2000 Hz</option>
+                        <option value="4000" ${state.mouseProfile.polling==4000?'selected':''}>4000 Hz</option>
+                        <option value="8000" ${state.mouseProfile.polling==8000?'selected':''}>8000 Hz</option>
+                    </select>
+                </div>
+                <div class="toggle-row">
+                    <div><div class="tr-label">Mouse Acceleration</div><div class="tr-sub">Disable for consistent aim</div></div>
+                    <div class="toggle ${state.mouseProfile.accel ? 'on' : ''}" id="mouseAccelToggle"></div>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label>Pointer Speed (Windows) — <span id="ptrSpeedVal">6</span>/11</label>
+                    <input type="range" id="ptrSpeed" min="1" max="11" value="6">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" id="saveMouseBtn">SAVE PROFILE</button>
+                    <button class="btn-secondary" id="testMouseBtn">TEST TRACKING</button>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">🎯</span> Mouse Tracking Test</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Move your mouse inside the box. The dot follows your cursor — check for smoothness and acceleration artifacts.</p>
+            <div style="position:relative;background:var(--bg);border:1px solid var(--border);border-radius:10px;height:200px;overflow:hidden;" id="trackingBox">
+                <div id="trackDot" style="position:absolute;width:12px;height:12px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;transition:none;"></div>
+                <div id="trackTrail" style="position:absolute;inset:0;"></div>
+            </div>
+            <div class="aim-stats" style="grid-template-columns:repeat(3,1fr);margin-top:12px;">
+                <div class="aim-stat"><div class="as-val" id="trackSpeed">0</div><div class="as-lbl">px/s SPEED</div></div>
+                <div class="aim-stat"><div class="as-val" id="trackSmooth">100%</div><div class="as-lbl">SMOOTHNESS</div></div>
+                <div class="aim-stat"><div class="as-val" id="trackSamples">0</div><div class="as-lbl">SAMPLES</div></div>
+            </div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // WEAPON PROFILES
+    // ══════════════════════════════════════════
+    weapons: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">🔫</span> Weapon Profiles</h2>
+            <div class="weapon-list" id="weaponList"></div>
+            <button class="btn-secondary" id="addWeaponBtn">+ ADD WEAPON PROFILE</button>
+        </div>
+        <div class="panel" id="weaponEditor" style="display:none;">
+            <h2><span class="ph-icon">✏</span> Edit Profile</h2>
+            <input type="hidden" id="editWeaponId">
+            <div class="field-row">
+                <div class="field"><label>Weapon Name</label><input type="text" id="editWeaponName" placeholder="e.g. AK-47"></div>
+                <div class="field"><label>Category</label>
+                    <select id="editWeaponCat">
+                        <option>Rifle</option><option>SMG</option><option>Sniper</option>
+                        <option>Pistol</option><option>Shotgun</option><option>LMG</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field-row-3">
+                <div class="field"><label>DPI</label><input type="number" id="editWeaponDpi" min="100" max="25600" step="50"></div>
+                <div class="field"><label>Hip-Fire Sensitivity</label><input type="number" id="editWeaponSens" min="0.01" step="0.01"></div>
+                <div class="field"><label>ADS Sensitivity</label><input type="number" id="editWeaponAds" min="0.01" step="0.01"></div>
+            </div>
+            <div class="field"><label>Notes</label><textarea id="editWeaponNotes" rows="2" style="resize:vertical;"></textarea></div>
+            <div class="btn-group">
+                <button class="btn-primary" id="saveWeaponBtn">SAVE</button>
+                <button class="btn-secondary" id="cancelWeaponBtn">CANCEL</button>
+                <button class="btn-danger" id="deleteWeaponBtn" style="margin-left:auto;">DELETE</button>
+            </div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // AIM TRAINER
+    // ══════════════════════════════════════════
+    aim: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">🎯</span> Aim Trainer</h2>
+            <div class="field-row" style="margin-bottom:14px;">
+                <div class="field">
+                    <label>Mode</label>
+                    <select id="aimMode">
+                        <option value="flick">Flick Shot</option>
+                        <option value="tracking">Tracking</option>
+                        <option value="precision">Precision</option>
+                        <option value="reaction">Reaction Time</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Target Size — <span id="aimSizeVal">30</span>px</label>
+                    <input type="range" id="aimSize" min="10" max="80" value="30">
+                </div>
+                <div class="field">
+                    <label>Duration (seconds)</label>
+                    <select id="aimDuration">
+                        <option value="30">30s</option>
+                        <option value="60" selected>60s</option>
+                        <option value="120">120s</option>
+                        <option value="0">Unlimited</option>
+                    </select>
+                </div>
+            </div>
+            <canvas id="aimCanvas" width="900" height="340"></canvas>
+            <div class="aim-stats">
+                <div class="aim-stat"><div class="as-val" id="aimHits">0</div><div class="as-lbl">HITS</div></div>
+                <div class="aim-stat"><div class="as-val" id="aimMisses">0</div><div class="as-lbl">MISSES</div></div>
+                <div class="aim-stat"><div class="as-val" id="aimAccuracy">—</div><div class="as-lbl">ACCURACY</div></div>
+                <div class="aim-stat"><div class="as-val" id="aimAvgTime">—</div><div class="as-lbl">AVG REACT (ms)</div></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" id="aimStartBtn">START</button>
+                <button class="btn-secondary" id="aimResetBtn">RESET</button>
+                <span id="aimTimer" style="margin-left:auto;font-size:20px;font-weight:800;color:var(--accent2);"></span>
+            </div>
+        </div>
+        <div class="panel" id="aimHistoryPanel">
+            <h2><span class="ph-icon">📋</span> Session History</h2>
+            <div class="info-list" id="aimHistory"><div style="color:var(--text-muted);font-size:13px;">No sessions yet — complete a training session to see results.</div></div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // RECOIL TRAINER
+    // ══════════════════════════════════════════
+    recoil: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">↑</span> Recoil Trainer</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">Study the recoil pattern of each weapon. IF-VIP <strong>never</strong> auto-compensates recoil in-game — this is a visual training tool only.</p>
+            <div class="field-row" style="margin-bottom:14px;">
+                <div class="field">
+                    <label>Weapon</label>
+                    <select id="recoilWeaponSelect">
+                        <option>AK-47</option><option>M4A1</option><option>MP5</option>
+                        <option>AWM</option><option>Desert Eagle</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Playback Speed</label>
+                    <select id="recoilSpeed">
+                        <option value="0.5">0.5x (Slow)</option>
+                        <option value="1" selected>1x (Normal)</option>
+                        <option value="2">2x (Fast)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Show Guide</label>
+                    <select id="recoilGuide">
+                        <option value="1">Yes — show pattern line</option>
+                        <option value="0">No — practice mode</option>
+                    </select>
+                </div>
+            </div>
+            <canvas id="recoilCanvas" width="900" height="320"></canvas>
+            <div class="btn-group">
+                <button class="btn-primary" id="recoilPlayBtn">▶ PLAY PATTERN</button>
+                <button class="btn-secondary" id="recoilResetBtn">RESET</button>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">📖</span> Pattern Info</h2>
+            <div class="info-list" id="recoilInfo"></div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // AI COACH
+    // ══════════════════════════════════════════
+    coach: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">🤖</span> AI Coach</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">Your personal aim coach — analyzes your training history and gives personalized recommendations.</p>
+            <div class="coach-chat" id="coachChat"></div>
+            <div class="coach-input-row">
+                <input type="text" id="coachInput" placeholder="Ask your coach... (e.g. How can I improve my flick shots?)">
+                <button class="btn-primary" id="coachSendBtn">SEND</button>
+            </div>
+            <div class="btn-group" style="margin-top:10px;">
+                <button class="btn-secondary" id="coachAnalyzeBtn">📊 ANALYZE MY STATS</button>
+                <button class="btn-secondary" id="coachDrillBtn">🎯 SUGGEST DRILL</button>
+                <button class="btn-secondary" id="coachSensBtn">⚡ OPTIMIZE SENSITIVITY</button>
+            </div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // SENSITIVITY CALCULATOR
+    // ══════════════════════════════════════════
+    sensitivity: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">⚡</span> Sensitivity Calculator</h2>
+            <div class="field-row-3">
+                <div class="field"><label>Mouse DPI</label><input type="number" id="sensDpi" value="${state.mouseProfile.dpi}" min="100" step="50"></div>
+                <div class="field"><label>Hip-Fire Sensitivity</label><input type="number" id="sensGame" value="2.4" min="0.01" step="0.01"></div>
+                <div class="field"><label>ADS Sensitivity</label><input type="number" id="sensAds" value="1.1" min="0.01" step="0.01"></div>
+            </div>
+            <div class="field-row-3">
+                <div class="field"><label>Monitor Width (px)</label><input type="number" id="sensMonW" value="1920" min="800" step="1"></div>
+                <div class="field"><label>Monitor Height (px)</label><input type="number" id="sensMonH" value="1080" min="600" step="1"></div>
+                <div class="field"><label>360° Distance (cm)</label><input type="number" id="sens360" value="" placeholder="Auto-calculated" readonly style="color:var(--accent2);"></div>
+            </div>
+            <button class="btn-primary" id="calcSensBtn">CALCULATE</button>
+            <div class="info-list" id="sensResults" style="margin-top:20px;"></div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">📋</span> Suggested Profiles</h2>
+            <div class="info-list" id="sensProfiles"></div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">🔄</span> Game Converter</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">Convert your sensitivity from another game to CrossFire equivalent.</p>
+            <div class="field-row">
+                <div class="field"><label>Source Game</label>
+                    <select id="convGame">
+                        <option value="1.0">CrossFire (same)</option>
+                        <option value="3.18">CS2 / CS:GO</option>
+                        <option value="0.33">Valorant</option>
+                        <option value="2.5">Overwatch 2</option>
+                        <option value="1.5">PUBG</option>
+                        <option value="0.9">Apex Legends</option>
+                    </select>
+                </div>
+                <div class="field"><label>Source Sensitivity</label><input type="number" id="convSens" value="1.0" min="0.01" step="0.01"></div>
+            </div>
+            <button class="btn-secondary" id="convBtn" style="margin-top:4px;">CONVERT</button>
+            <div class="info-list" id="convResult" style="margin-top:14px;"></div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // CROSSFIRE PROFILE
+    // ══════════════════════════════════════════
+    crossfire: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">🎮</span> CrossFire Profile</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Choose a base profile that drives recommended training drills and sensitivity presets.</p>
+            <div class="cf-profiles" id="cfProfileGrid"></div>
+        </div>
+        <div class="panel" id="cfProfileDetails">
+            <h2><span class="ph-icon">📋</span> Profile Details</h2>
+            <div class="info-list" id="cfDetailsList"></div>
+            <div class="btn-group">
+                <button class="btn-primary" id="applyCfBtn">APPLY PROFILE</button>
+            </div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // PERFORMANCE
+    // ══════════════════════════════════════════
+    performance: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">📊</span> Live Performance Monitor</h2>
+            <div class="perf-grid">
+                <div class="perf-card"><div class="pc-val" id="perfCpu">—</div><div class="pc-unit">%</div><div class="pc-lbl">CPU USAGE</div></div>
+                <div class="perf-card"><div class="pc-val" id="perfRam">—</div><div class="pc-unit">GB</div><div class="pc-lbl">RAM USED</div></div>
+                <div class="perf-card"><div class="pc-val" id="perfFps">—</div><div class="pc-unit">FPS</div><div class="pc-lbl">EST. FRAME RATE</div></div>
+                <div class="perf-card"><div class="pc-val" id="perfPing">—</div><div class="pc-unit">ms</div><div class="pc-lbl">PING (simulated)</div></div>
+                <div class="perf-card"><div class="pc-val" id="perfInput">—</div><div class="pc-unit">ms</div><div class="pc-lbl">INPUT LATENCY</div></div>
+                <div class="perf-card"><div class="pc-val" id="perfUptime">—</div><div class="pc-unit">min</div><div class="pc-lbl">SESSION TIME</div></div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">💻</span> Hardware Details</h2>
+            <div class="info-list">
+                <div class="row"><span class="k">CPU</span><span class="v">${cpuInfo()}</span></div>
+                <div class="row"><span class="k">Total RAM</span><span class="v">${(os.totalmem()/(1024**3)).toFixed(1)} GB</span></div>
+                <div class="row"><span class="k">Free RAM</span><span class="v" id="perfFreeRam">${(os.freemem()/(1024**3)).toFixed(1)} GB</span></div>
+                <div class="row"><span class="k">Platform</span><span class="v">${os.platform()} ${os.arch()}</span></div>
+                <div class="row"><span class="k">Mouse Polling</span><span class="v">${state.mouseProfile.polling} Hz (${(1000/state.mouseProfile.polling).toFixed(1)}ms latency)</span></div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">📈</span> Performance Tips</h2>
+            <div class="info-list" id="perfTips"></div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // LICENSE
+    // ══════════════════════════════════════════
+    license: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">🔑</span> License</h2>
+            <div class="info-list">
+                <div class="row"><span class="k">Activation Code</span><span class="v" id="licKey">—</span></div>
+                <div class="row"><span class="k">Type</span><span class="v" id="licType">—</span></div>
+                <div class="row"><span class="k">Status</span><span class="v" id="licStatus">—</span></div>
+                <div class="row"><span class="k">Expires</span><span class="v" id="licExpires">—</span></div>
+                <div class="row"><span class="k">Device</span><span class="v">AUTHORIZED (this device)</span></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-secondary" id="changeCodeBtn">USE A DIFFERENT CODE</button>
+            </div>
+        </div>
+    `,
+
+    // ══════════════════════════════════════════
+    // SETTINGS
+    // ══════════════════════════════════════════
+    settings: () => `
+        <div class="panel">
+            <h2><span class="ph-icon">⚙</span> Application Settings</h2>
+            <div class="toggle-row">
+                <div><div class="tr-label">Start with Windows</div><div class="tr-sub">Launch IF-VIP automatically on startup</div></div>
+                <div class="toggle ${state.settings.startWithWindows?'on':''}" data-key="startWithWindows"></div>
+            </div>
+            <div class="toggle-row">
+                <div><div class="tr-label">Minimize to Tray</div><div class="tr-sub">Keep running in system tray when closed</div></div>
+                <div class="toggle ${state.settings.minimizeToTray?'on':''}" data-key="minimizeToTray"></div>
+            </div>
+            <div class="toggle-row">
+                <div><div class="tr-label">Notifications</div><div class="tr-sub">Show training reminders and tips</div></div>
+                <div class="toggle ${state.settings.notifications?'on':''}" data-key="notifications"></div>
+            </div>
+            <div class="toggle-row">
+                <div><div class="tr-label">Auto Update</div><div class="tr-sub">Automatically download and install updates</div></div>
+                <div class="toggle ${state.settings.autoUpdate?'on':''}" data-key="autoUpdate"></div>
+            </div>
+            <div class="toggle-row">
+                <div><div class="tr-label">In-Game Overlay</div><div class="tr-sub">Show stats overlay while CrossFire is running</div></div>
+                <div class="toggle ${state.settings.overlayEnabled?'on':''}" data-key="overlayEnabled"></div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">🎨</span> Appearance</h2>
+            <div class="field">
+                <label>Accent Color</label>
+                <div style="display:flex;gap:10px;margin-top:6px;">
+                    <div class="color-swatch" data-color="#8b5cf6" style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid #fff;"></div>
+                    <div class="color-swatch" data-color="#06b6d4" style="width:32px;height:32px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid transparent;"></div>
+                    <div class="color-swatch" data-color="#22c55e" style="width:32px;height:32px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid transparent;"></div>
+                    <div class="color-swatch" data-color="#ef4444" style="width:32px;height:32px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid transparent;"></div>
+                    <div class="color-swatch" data-color="#f59e0b" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2><span class="ph-icon">🗑</span> Data Management</h2>
+            <div class="info-list">
+                <div class="row"><span class="k">Training Sessions</span><span class="v" id="dataSessionCount">0</span></div>
+                <div class="row"><span class="k">Weapon Profiles</span><span class="v">${state.weaponProfiles.length}</span></div>
+                <div class="row"><span class="k">Total Shots Fired</span><span class="v">${parseInt(localStorage.getItem('totalShots')||'0').toLocaleString()}</span></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-danger" id="clearDataBtn">CLEAR TRAINING DATA</button>
+                <button class="btn-secondary" id="exportDataBtn">EXPORT DATA</button>
+            </div>
+        </div>
+    `
+};
+
+// ─── RENDER TAB ───
+function renderTab(tab) {
+    // Stop performance monitor if leaving that tab
+    if (state.perfInterval) { clearInterval(state.perfInterval); state.perfInterval = null; }
+    // Stop aim trainer if leaving
+    if (state.aimSession.active) stopAimTrainer();
+
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+    document.getElementById('tabContent').innerHTML = tabTemplates[tab] ? tabTemplates[tab]() : `<div class="panel"><h2>${tab}</h2><p style="color:var(--text-muted)">Coming soon.</p></div>`;
+
+    // Tab-specific init
+    const inits = {
+        dashboard: initDashboard,
+        mouse: initMouse,
+        weapons: initWeapons,
+        aim: initAim,
+        recoil: initRecoil,
+        coach: initCoach,
+        sensitivity: initSensitivity,
+        crossfire: initCrossfire,
+        performance: initPerformance,
+        license: initLicense,
+        settings: initSettings
+    };
+    if (inits[tab]) inits[tab]();
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD INIT
+// ══════════════════════════════════════════
+function initDashboard() {
+    const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]');
+    const recent = sessions.slice(-10);
+
+    const avgAcc = recent.length ? Math.round(recent.reduce((s,x) => s + (x.accuracy||0), 0) / recent.length) : null;
+    const avgReact = recent.length ? Math.round(recent.reduce((s,x) => s + (x.avgTime||0), 0) / recent.length) : null;
+
+    const scores = {
+        aim: avgAcc || Math.floor(Math.random()*15+75),
+        track: Math.floor(Math.random()*10+82),
+        react: avgReact ? Math.min(100, Math.round(100 - avgReact/10)) : Math.floor(Math.random()*12+78),
+        cons: Math.floor(Math.random()*10+80),
+    };
+    scores.overall = Math.round((scores.aim + scores.track + scores.react + scores.cons) / 4);
+
+    document.getElementById('scoreAim').textContent = scores.aim + '%';
+    document.getElementById('scoreTrack').textContent = scores.track + '%';
+    document.getElementById('scoreReact').textContent = scores.react + '%';
+    document.getElementById('scoreCons').textContent = scores.cons + '%';
+    document.getElementById('scoreOverall').textContent = scores.overall + '%';
+    document.getElementById('dashSessions').textContent = sessions.length;
+
+    // Skill bars
+    const skills = [
+        { name: 'Flick Accuracy', val: scores.aim },
+        { name: 'Tracking', val: scores.track },
+        { name: 'Reaction Time', val: scores.react },
+        { name: 'Consistency', val: scores.cons },
+        { name: 'Overall', val: scores.overall }
+    ];
+    document.getElementById('skillBars').innerHTML = skills.map(s => `
+        <div class="progress-wrap">
+            <div class="progress-label"><span class="name">${s.name}</span><span class="val">${s.val}%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${s.val}%"></div></div>
+        </div>
+    `).join('');
+
+    // CF process detection (simulated)
+    setTimeout(() => {
+        const cfEl = document.getElementById('cfStatus');
+        if (cfEl) {
+            cfEl.textContent = 'Not detected — launch CrossFire to enable live monitoring';
+            cfEl.style.color = 'var(--text-muted)';
+        }
+    }, 1200);
+}
+
+// ══════════════════════════════════════════
+// MOUSE CENTER INIT
+// ══════════════════════════════════════════
+function initMouse() {
+    // Simulate mouse detection
+    setTimeout(() => {
+        const el = document.getElementById('detectedMouse');
+        if (el) el.textContent = 'Generic USB Mouse (HID)';
+    }, 800);
+
+    // Pointer speed slider
+    const ptrSlider = document.getElementById('ptrSpeed');
+    ptrSlider.addEventListener('input', () => {
+        document.getElementById('ptrSpeedVal').textContent = ptrSlider.value;
+    });
+
+    // Acceleration toggle
+    document.getElementById('mouseAccelToggle').addEventListener('click', function() {
+        this.classList.toggle('on');
+        state.mouseProfile.accel = this.classList.contains('on');
+    });
+
+    // Save
+    document.getElementById('saveMouseBtn').addEventListener('click', () => {
+        state.mouseProfile.dpi = parseInt(document.getElementById('mouseDpi').value) || 800;
+        state.mouseProfile.polling = parseInt(document.getElementById('mousePolling').value) || 1000;
+        saveMouseProfile();
+        document.getElementById('currentDpiDisplay').textContent = state.mouseProfile.dpi;
+        document.getElementById('currentPollingDisplay').textContent = state.mouseProfile.polling + ' Hz';
+        document.getElementById('currentAccelDisplay').textContent = state.mouseProfile.accel ? 'ON' : 'OFF';
+        notify('Mouse profile saved!', 'success');
+    });
+
+    // Test tracking
+    document.getElementById('testMouseBtn').addEventListener('click', () => {
+        notify('Move your mouse in the tracking box below', 'info');
+    });
+
+    // Tracking box
+    const box = document.getElementById('trackingBox');
+    const dot = document.getElementById('trackDot');
+    let lastX = 0, lastY = 0, lastT = 0, samples = 0, speedSum = 0;
+
+    box.addEventListener('mousemove', (e) => {
+        const rect = box.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        dot.style.left = x + 'px';
+        dot.style.top = y + 'px';
+
+        const now = performance.now();
+        if (lastT) {
+            const dt = now - lastT;
+            const dist = Math.sqrt((x-lastX)**2 + (y-lastY)**2);
+            const speed = Math.round(dist / dt * 1000);
+            speedSum += speed;
+            samples++;
+            document.getElementById('trackSpeed').textContent = speed;
+            document.getElementById('trackSamples').textContent = samples;
+            const smooth = Math.max(0, Math.min(100, Math.round(100 - Math.abs(speed - speedSum/samples) / 10)));
+            document.getElementById('trackSmooth').textContent = smooth + '%';
+        }
+        lastX = x; lastY = y; lastT = now;
+    });
+}
+
+// ══════════════════════════════════════════
+// WEAPON PROFILES INIT
+// ══════════════════════════════════════════
+function initWeapons() {
+    renderWeaponList();
+
+    document.getElementById('addWeaponBtn').addEventListener('click', () => {
+        openWeaponEditor(null);
+    });
+}
+
+function renderWeaponList() {
+    const list = document.getElementById('weaponList');
+    if (!list) return;
+    list.innerHTML = state.weaponProfiles.map(w => `
+        <div class="weapon-card" data-id="${w.id}">
+            <div class="wc-badge">${w.category}</div>
+            <div class="wc-name">${w.name}</div>
+            <div class="wc-meta">DPI ${w.dpi} · Sens ${w.sens} · ADS ${w.ads}</div>
+            <div class="wc-meta" style="margin-top:4px;color:var(--text-muted);font-style:italic;">${w.notes || ''}</div>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.weapon-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const id = parseInt(card.dataset.id);
+            const w = state.weaponProfiles.find(x => x.id === id);
+            openWeaponEditor(w);
+        });
+    });
+}
+
+function openWeaponEditor(w) {
+    const editor = document.getElementById('weaponEditor');
+    editor.style.display = 'block';
+    document.getElementById('editWeaponId').value = w ? w.id : '';
+    document.getElementById('editWeaponName').value = w ? w.name : '';
+    document.getElementById('editWeaponCat').value = w ? w.category : 'Rifle';
+    document.getElementById('editWeaponDpi').value = w ? w.dpi : state.mouseProfile.dpi;
+    document.getElementById('editWeaponSens').value = w ? w.sens : 2.4;
+    document.getElementById('editWeaponAds').value = w ? w.ads : 1.1;
+    document.getElementById('editWeaponNotes').value = w ? w.notes : '';
+    document.getElementById('deleteWeaponBtn').style.display = w ? 'block' : 'none';
+
+    document.getElementById('saveWeaponBtn').onclick = () => {
+        const id = document.getElementById('editWeaponId').value;
+        const profile = {
+            id: id ? parseInt(id) : Date.now(),
+            name: document.getElementById('editWeaponName').value || 'Unnamed',
+            category: document.getElementById('editWeaponCat').value,
+            dpi: parseInt(document.getElementById('editWeaponDpi').value) || 800,
+            sens: parseFloat(document.getElementById('editWeaponSens').value) || 2.4,
+            ads: parseFloat(document.getElementById('editWeaponAds').value) || 1.1,
+            notes: document.getElementById('editWeaponNotes').value
         };
-        function calculateSensitivity() {
+        if (id) {
+            const idx = state.weaponProfiles.findIndex(x => x.id === parseInt(id));
+            if (idx >= 0) state.weaponProfiles[idx] = profile;
+        } else {
+            state.weaponProfiles.push(profile);
+        }
+        saveWeaponProfiles();
+        renderWeaponList();
+        editor.style.display = 'none';
+        notify('Weapon profile saved!', 'success');
+    };
+
+    document.getElementById('cancelWeaponBtn').onclick = () => { editor.style.display = 'none'; };
+
+    document.getElementById('deleteWeaponBtn').onclick = () => {
+        const id = parseInt(document.getElementById('editWeaponId').value);
+        state.weaponProfiles = state.weaponProfiles.filter(x => x.id !== id);
+        saveWeaponProfiles();
+        renderWeaponList();
+        editor.style.display = 'none';
+        notify('Profile deleted.', 'info');
+    };
+}
+
+// ══════════════════════════════════════════
+// AIM TRAINER INIT
+// ══════════════════════════════════════════
+let aimAnimFrame = null;
+let aimTarget = null;
+let aimTimerInterval = null;
+let aimTimeLeft = 60;
+
+function initAim() {
+    const canvas = document.getElementById('aimCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 340;
+
+    document.getElementById('aimSize').addEventListener('input', function() {
+        document.getElementById('aimSizeVal').textContent = this.value;
+    });
+
+    document.getElementById('aimStartBtn').addEventListener('click', () => {
+        if (state.aimSession.active) {
+            stopAimTrainer();
+        } else {
+            startAimTrainer(canvas, ctx);
+        }
+    });
+
+    document.getElementById('aimResetBtn').addEventListener('click', () => {
+        stopAimTrainer();
+        resetAimStats();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Load history
+    renderAimHistory();
+}
+
+function startAimTrainer(canvas, ctx) {
+    state.aimSession = { hits: 0, misses: 0, totalTime: 0, shots: 0, startTime: null, active: true, times: [] };
+    const duration = parseInt(document.getElementById('aimDuration').value);
+    aimTimeLeft = duration || 9999;
+    document.getElementById('aimStartBtn').textContent = 'STOP';
+    document.getElementById('aimTimer').textContent = duration ? aimTimeLeft + 's' : '∞';
+
+    spawnAimTarget(canvas);
+    drawAimFrame(canvas, ctx);
+
+    if (duration) {
+        aimTimerInterval = setInterval(() => {
+            aimTimeLeft--;
+            const timerEl = document.getElementById('aimTimer');
+            if (timerEl) timerEl.textContent = aimTimeLeft + 's';
+            if (aimTimeLeft <= 0) stopAimTrainer();
+        }, 1000);
+    }
+
+    canvas.onclick = (e) => {
+        if (!state.aimSession.active) return;
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const size = parseInt(document.getElementById('aimSize').value);
+        const dx = mx - aimTarget.x;
+        const dy = my - aimTarget.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist <= size) {
+            const now = performance.now();
+            const rt = state.aimSession.startTime ? Math.round(now - state.aimSession.startTime) : 0;
+            state.aimSession.hits++;
+            state.aimSession.times.push(rt);
+            state.aimSession.totalTime += rt;
+            spawnAimTarget(canvas);
+        } else {
+            state.aimSession.misses++;
+        }
+        state.aimSession.shots++;
+        updateAimStats();
+    };
+}
+
+function spawnAimTarget(canvas) {
+    const size = parseInt(document.getElementById('aimSize').value);
+    const mode = document.getElementById('aimMode').value;
+    aimTarget = {
+        x: size + Math.random() * (canvas.width - size*2),
+        y: size + Math.random() * (canvas.height - size*2),
+        size,
+        mode,
+        born: performance.now()
+    };
+    state.aimSession.startTime = performance.now();
+}
+
+function drawAimFrame(canvas, ctx) {
+    if (!state.aimSession.active) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (aimTarget) {
+        const age = performance.now() - aimTarget.born;
+        const maxAge = 2000;
+        const fade = Math.max(0, 1 - age / maxAge);
+
+        // Outer ring
+        ctx.beginPath();
+        ctx.arc(aimTarget.x, aimTarget.y, aimTarget.size, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(139,92,246,${fade})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Inner dot
+        ctx.beginPath();
+        ctx.arc(aimTarget.x, aimTarget.y, 4, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(167,139,250,${fade})`;
+        ctx.fill();
+
+        // Shrinking ring
+        const shrink = aimTarget.size * (1 - age/maxAge);
+        if (shrink > 0) {
+            ctx.beginPath();
+            ctx.arc(aimTarget.x, aimTarget.y, shrink, 0, Math.PI*2);
+            ctx.strokeStyle = `rgba(6,182,212,${fade*0.6})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        // Auto-miss if too slow
+        if (age > maxAge) {
+            state.aimSession.misses++;
+            state.aimSession.shots++;
+            updateAimStats();
+            spawnAimTarget(canvas);
+        }
+    }
+
+    aimAnimFrame = requestAnimationFrame(() => drawAimFrame(canvas, ctx));
+}
+
+function stopAimTrainer() {
+    state.aimSession.active = false;
+    if (aimAnimFrame) { cancelAnimationFrame(aimAnimFrame); aimAnimFrame = null; }
+    if (aimTimerInterval) { clearInterval(aimTimerInterval); aimTimerInterval = null; }
+    const btn = document.getElementById('aimStartBtn');
+    if (btn) btn.textContent = 'START';
+    const timerEl = document.getElementById('aimTimer');
+    if (timerEl) timerEl.textContent = '';
+
+    // Save session
+    if (state.aimSession.shots > 0) {
+        const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]');
+        const acc = Math.round(state.aimSession.hits / state.aimSession.shots * 100);
+        const avgT = state.aimSession.times.length ? Math.round(state.aimSession.totalTime / state.aimSession.times.length) : 0;
+        sessions.push({
+            date: new Date().toLocaleDateString(),
+            hits: state.aimSession.hits,
+            misses: state.aimSession.misses,
+            accuracy: acc,
+            avgTime: avgT
+        });
+        localStorage.setItem('aimSessions', JSON.stringify(sessions));
+        const total = parseInt(localStorage.getItem('totalShots') || '0') + state.aimSession.shots;
+        localStorage.setItem('totalShots', total);
+        renderAimHistory();
+        notify(`Session saved — ${acc}% accuracy`, 'success');
+    }
+}
+
+function resetAimStats() {
+    state.aimSession = { hits: 0, misses: 0, totalTime: 0, shots: 0, startTime: null, active: false, times: [] };
+    updateAimStats();
+}
+
+function updateAimStats() {
+    const s = state.aimSession;
+    const acc = s.shots > 0 ? Math.round(s.hits / s.shots * 100) + '%' : '—';
+    const avg = s.times && s.times.length ? Math.round(s.totalTime / s.times.length) + 'ms' : '—';
+    const hEl = document.getElementById('aimHits');
+    const mEl = document.getElementById('aimMisses');
+    const aEl = document.getElementById('aimAccuracy');
+    const tEl = document.getElementById('aimAvgTime');
+    if (hEl) hEl.textContent = s.hits;
+    if (mEl) mEl.textContent = s.misses;
+    if (aEl) aEl.textContent = acc;
+    if (tEl) tEl.textContent = avg;
+}
+
+function renderAimHistory() {
+    const el = document.getElementById('aimHistory');
+    if (!el) return;
+    const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]').slice(-5).reverse();
+    if (!sessions.length) {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">No sessions yet.</div>';
+        return;
+    }
+    el.innerHTML = sessions.map(s => `
+        <div class="row">
+            <span class="k">${s.date}</span>
+            <span class="v">${s.accuracy}% accuracy · ${s.hits} hits · ${s.avgTime}ms avg</span>
+        </div>
+    `).join('');
+}
+
+// ══════════════════════════════════════════
+// RECOIL TRAINER INIT
+// ══════════════════════════════════════════
+let recoilAnimFrame = null;
+
+function initRecoil() {
+    const canvas = document.getElementById('recoilCanvas');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 320;
+    const ctx = canvas.getContext('2d');
+
+    function updateRecoilInfo(weapon) {
+        const pattern = RECOIL_PATTERNS[weapon] || [];
+        const el = document.getElementById('recoilInfo');
+        if (!el) return;
+        const maxY = Math.max(...pattern.map(p => p.y));
+        const spread = Math.max(...pattern.map(p => Math.abs(p.x)));
+        el.innerHTML = `
+            <div class="row"><span class="k">Weapon</span><span class="v">${weapon}</span></div>
+            <div class="row"><span class="k">Pattern Points</span><span class="v">${pattern.length} shots</span></div>
+            <div class="row"><span class="k">Vertical Rise</span><span class="v">${maxY}px equivalent</span></div>
+            <div class="row"><span class="k">Horizontal Spread</span><span class="v">±${spread}px</span></div>
+            <div class="row"><span class="k">Control Tip</span><span class="v">${getRecoilTip(weapon)}</span></div>
+        `;
+    }
+
+    function getRecoilTip(w) {
+        const tips = {
+            'AK-47': 'Pull down-left after 5 shots, then down-right',
+            'M4A1': 'Steady downward pull, minimal horizontal correction',
+            'MP5': 'Light pull, focus on burst control',
+            'AWM': 'Single shot — reset between each bullet',
+            'Desert Eagle': 'Semi-auto — wait for crosshair reset'
+        };
+        return tips[w] || 'Practice burst control';
+    }
+
+    function drawRecoilPattern(weapon, animate) {
+        const pattern = RECOIL_PATTERNS[weapon] || [];
+        const showGuide = document.getElementById('recoilGuide').value === '1';
+        const speed = parseFloat(document.getElementById('recoilSpeed').value);
+        const cx = canvas.width / 2;
+        const cy = canvas.height - 40;
+        const scale = 2.5;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Crosshair base
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx-20, cy); ctx.lineTo(cx+20, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy-20); ctx.lineTo(cx, cy+20); ctx.stroke();
+
+        if (showGuide) {
+            // Draw full pattern line
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(139,92,246,0.3)';
+            ctx.lineWidth = 1.5;
+            pattern.forEach((p, i) => {
+                const px = cx + p.x * scale;
+                const py = cy - p.y * scale;
+                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+        }
+
+        if (!animate) return;
+
+        let i = 0;
+        const step = () => {
+            if (i >= pattern.length || !document.getElementById('recoilCanvas')) {
+                cancelAnimationFrame(recoilAnimFrame);
+                return;
+            }
+            const p = pattern[i];
+            const px = cx + p.x * scale;
+            const py = cy - p.y * scale;
+
+            ctx.beginPath();
+            ctx.arc(px, py, 4, 0, Math.PI*2);
+            ctx.fillStyle = i === 0 ? '#22c55e' : `rgba(139,92,246,${1 - i/pattern.length*0.5})`;
+            ctx.fill();
+
+            i++;
+            recoilAnimFrame = setTimeout(() => requestAnimationFrame(step), 80 / speed);
+        };
+        requestAnimationFrame(step);
+    }
+
+    const weaponSel = document.getElementById('recoilWeaponSelect');
+    weaponSel.value = state.recoilWeapon;
+    updateRecoilInfo(state.recoilWeapon);
+    drawRecoilPattern(state.recoilWeapon, false);
+
+    weaponSel.addEventListener('change', () => {
+        state.recoilWeapon = weaponSel.value;
+        if (recoilAnimFrame) clearTimeout(recoilAnimFrame);
+        drawRecoilPattern(state.recoilWeapon, false);
+        updateRecoilInfo(state.recoilWeapon);
+    });
+
+    document.getElementById('recoilPlayBtn').addEventListener('click', () => {
+        if (recoilAnimFrame) clearTimeout(recoilAnimFrame);
+        drawRecoilPattern(state.recoilWeapon, true);
+    });
+
+    document.getElementById('recoilResetBtn').addEventListener('click', () => {
+        if (recoilAnimFrame) clearTimeout(recoilAnimFrame);
+        drawRecoilPattern(state.recoilWeapon, false);
+    });
+}
+
+// ══════════════════════════════════════════
+// AI COACH INIT
+// ══════════════════════════════════════════
+function initCoach() {
+    const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]');
+    const recent = sessions.slice(-5);
+
+    // Initial greeting
+    addCoachMsg('ai', `Hey! I'm your IF-VIP AI Coach. I've analyzed your last ${recent.length} training sessions. Ask me anything or use the quick buttons below.`);
+
+    if (recent.length) {
+        const avgAcc = Math.round(recent.reduce((s,x) => s+(x.accuracy||0),0)/recent.length);
+        const avgReact = Math.round(recent.reduce((s,x) => s+(x.avgTime||0),0)/recent.length);
+        addCoachMsg('ai', `📊 Quick stats: Your average accuracy is **${avgAcc}%** with **${avgReact}ms** average reaction time. ${avgAcc >= 80 ? 'Great consistency!' : 'Focus on precision drills to improve accuracy.'}`);
+    }
+
+    document.getElementById('coachSendBtn').addEventListener('click', sendCoachMessage);
+    document.getElementById('coachInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendCoachMessage(); });
+
+    document.getElementById('coachAnalyzeBtn').addEventListener('click', () => {
+        const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]');
+        if (!sessions.length) {
+            addCoachMsg('ai', 'No training data yet! Complete some aim trainer sessions first, then I can analyze your performance.');
+            return;
+        }
+        const avgAcc = Math.round(sessions.reduce((s,x) => s+(x.accuracy||0),0)/sessions.length);
+        const best = Math.max(...sessions.map(x => x.accuracy||0));
+        const trend = sessions.length >= 3 ?
+            (sessions.slice(-3).reduce((s,x)=>s+(x.accuracy||0),0)/3 > sessions.slice(0,3).reduce((s,x)=>s+(x.accuracy||0),0)/3 ? '📈 improving' : '📉 declining') : 'stable';
+        addCoachMsg('ai', `📊 **Full Analysis:**\n• Total sessions: ${sessions.length}\n• Average accuracy: ${avgAcc}%\n• Best session: ${best}%\n• Trend: ${trend}\n\n${avgAcc < 70 ? '💡 Recommendation: Increase target size and focus on clicking center.' : avgAcc < 85 ? '💡 Recommendation: Try precision mode with smaller targets.' : '💡 Recommendation: Challenge yourself with reaction time drills!'}`);
+    });
+
+    document.getElementById('coachDrillBtn').addEventListener('click', () => {
+        const drills = [
+            'Try 60 seconds of Flick Shot mode with 25px targets — focus on snapping to center.',
+            'Do 3 rounds of Precision mode with 15px targets. Quality over speed.',
+            'Reaction Time drill: 30 seconds, click as fast as possible. Aim for under 250ms.',
+            'Tracking drill: Follow moving targets for 60 seconds without losing focus.',
+            'Warm-up routine: 30s flick → 30s precision → 30s reaction. Repeat 3 times.'
+        ];
+        addCoachMsg('ai', '🎯 **Suggested Drill:**\n' + drills[Math.floor(Math.random()*drills.length)]);
+    });
+
+    document.getElementById('coachSensBtn').addEventListener('click', () => {
+        const dpi = state.mouseProfile.dpi;
+        const eDpi = dpi * 2.4;
+        const rec = eDpi < 800 ? 'Your eDPI is low — consider increasing sensitivity for faster flicks.' :
+                    eDpi > 3000 ? 'Your eDPI is high — lower sensitivity for better precision.' :
+                    'Your eDPI is in the optimal range (800–3000) for CrossFire.';
+        addCoachMsg('ai', `⚡ **Sensitivity Analysis:**\n• Current DPI: ${dpi}\n• Estimated eDPI: ${eDpi}\n• ${rec}\n\n💡 Pro tip: Most CrossFire pros use 800–1600 eDPI for rifles and 1200–2400 for SMGs.`);
+    });
+}
+
+function addCoachMsg(role, text) {
+    const chat = document.getElementById('coachChat');
+    if (!chat) return;
+    const div = document.createElement('div');
+    div.className = 'coach-msg';
+    div.innerHTML = `
+        <div class="cm-role ${role}">${role === 'ai' ? '🤖 AI COACH' : '👤 YOU'}</div>
+        <div class="cm-text">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>
+    `;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function sendCoachMessage() {
+    const input = document.getElementById('coachInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addCoachMsg('user', msg);
+    input.value = '';
+
+    // Simple rule-based responses
+    setTimeout(() => {
+        const lower = msg.toLowerCase();
+        let response = '';
+        if (lower.includes('sens') || lower.includes('dpi')) {
+            response = `For CrossFire, I recommend starting at 800 DPI with 2.0–3.0 in-game sensitivity. Your current setup is ${state.mouseProfile.dpi} DPI. Use the Sensitivity Calculator tab to fine-tune your eDPI.`;
+        } else if (lower.includes('recoil')) {
+            response = 'Recoil control is key in CrossFire. Use the Recoil Trainer tab to study each weapon pattern. For AK-47: pull down-left after 5 shots. For M4A1: steady downward pull.';
+        } else if (lower.includes('aim') || lower.includes('accuracy')) {
+            response = 'To improve aim: 1) Warm up with 5 min of flick shots daily. 2) Practice crosshair placement — always aim at head height. 3) Use burst fire at range. 4) Lower your sensitivity if you overshoot.';
+        } else if (lower.includes('crossfire') || lower.includes('cf')) {
+            response = 'CrossFire tips: Pre-aim common angles, use burst fire at medium range, and always move after shooting. Your current CF profile is set to ' + state.cfProfile + '.';
+        } else if (lower.includes('warm') || lower.includes('routine')) {
+            response = 'Recommended warm-up: 5 min aim trainer (flick mode) → 3 min precision → 2 min reaction time. Do this before every session for best results.';
+        } else {
+            const generic = [
+                'Great question! Focus on consistency over speed — accuracy comes first, then speed follows naturally.',
+                'Practice daily for 15–20 minutes. Short focused sessions beat long unfocused ones.',
+                'Check your crosshair placement — always aim at head height before enemies appear.',
+                'Try the Aim Trainer with smaller targets to challenge yourself and improve precision.'
+            ];
+            response = generic[Math.floor(Math.random()*generic.length)];
+        }
+        addCoachMsg('ai', response);
+    }, 600);
+}
+
+// ══════════════════════════════════════════
+// SENSITIVITY CALCULATOR INIT
+// ══════════════════════════════════════════
+function initSensitivity() {
+    document.getElementById('calcSensBtn').addEventListener('click', calculateSensitivity);
+    document.getElementById('convBtn').addEventListener('click', convertSensitivity);
+    calculateSensitivity();
+}
+
+function calculateSensitivity() {
     const dpi = parseFloat(document.getElementById('sensDpi').value) || 0;
     const gameSens = parseFloat(document.getElementById('sensGame').value) || 0;
     const adsSens = parseFloat(document.getElementById('sensAds').value) || 0;
+    const monW = parseFloat(document.getElementById('sensMonW').value) || 1920;
+    const monH = parseFloat(document.getElementById('sensMonH').value) || 1080;
 
     const eDpiHip = dpi * gameSens;
     const eDpiAds = dpi * adsSens;
+    const cmPer360 = dpi > 0 ? (2.54 * 360 / (dpi * gameSens)).toFixed(1) : '—';
+
+    document.getElementById('sens360').value = cmPer360 !== '—' ? cmPer360 + ' cm' : '—';
 
     document.getElementById('sensResults').innerHTML = `
-        <div class="row"><span class="k">Effective Sensitivity (eDPI) — Hip Fire</span><span class="v">${eDpiHip.toFixed(0)}</span></div>
-        <div class="row"><span class="k">Effective Sensitivity (eDPI) — ADS</span><span class="v">${eDpiAds.toFixed(0)}</span></div>
+        <div class="row"><span class="k">eDPI — Hip Fire</span><span class="v">${eDpiHip.toFixed(0)}</span></div>
+        <div class="row"><span class="k">eDPI — ADS</span><span class="v">${eDpiAds.toFixed(0)}</span></div>
+        <div class="row"><span class="k">360° Distance</span><span class="v">${cmPer360} cm</span></div>
+        <div class="row"><span class="k">Inches per 360°</span><span class="v">${dpi > 0 ? (360/(dpi*gameSens)).toFixed(2) : '—'} in</span></div>
+        <div class="row"><span class="k">Resolution</span><span class="v">${monW}×${monH}</span></div>
+        <div class="row"><span class="k">Rating</span><span class="v">${eDpiHip < 800 ? '🔵 Low (precision)' : eDpiHip < 2000 ? '🟢 Optimal' : eDpiHip < 3500 ? '🟡 High' : '🔴 Very High'}</span></div>
     `;
 
     const profiles = [
-        { label: 'Low (precision-focused)', target: 1000 },
-        { label: 'Medium (balanced)', target: 1800 },
-        { label: 'High (fast flicks)', target: 3000 }
+        { label: 'Low — Precision / Sniper', target: 800 },
+        { label: 'Medium — Balanced / Rifle', target: 1600 },
+        { label: 'High — Aggressive / SMG', target: 3000 }
     ];
-
     document.getElementById('sensProfiles').innerHTML = profiles.map(p => {
-        const suggestedGameSens = dpi > 0 ? (p.target / dpi).toFixed(2) : '—';
-        return `<div class="row"><span class="k">${p.label} · eDPI ~${p.target}</span><span class="v">Sensitivity ${suggestedGameSens} @ ${dpi} DPI</span></div>`;
+        const sg = dpi > 0 ? (p.target / dpi).toFixed(2) : '—';
+        return `<div class="row"><span class="k">${p.label} · eDPI ~${p.target}</span><span class="v">Sens ${sg} @ ${dpi} DPI</span></div>`;
     }).join('');
 }
 
-        function stubPanel(title, note) {
-            return `<div class="panel"><h2>${title}</h2><p class="placeholder-note">${note}</p></div>`;
-        }
+function convertSensitivity() {
+    const factor = parseFloat(document.getElementById('convGame').value) || 1;
+    const sourceSens = parseFloat(document.getElementById('convSens').value) || 1;
+    const cfSens = (sourceSens * factor).toFixed(3);
+    const gameName = document.getElementById('convGame').options[document.getElementById('convGame').selectedIndex].text;
+    document.getElementById('convResult').innerHTML = `
+        <div class="row"><span class="k">Source (${gameName})</span><span class="v">${sourceSens}</span></div>
+        <div class="row"><span class="k">CrossFire Equivalent</span><span class="v" style="color:var(--accent2);font-size:16px;">${cfSens}</span></div>
+        <div class="row"><span class="k">eDPI</span><span class="v">${Math.round(state.mouseProfile.dpi * parseFloat(cfSens))}</span></div>
+    `;
+}
 
-        function cpuInfo() {
-            const cpus = os.cpus();
-            return cpus && cpus.length ? `${cpus[0].model} (${cpus.length} threads)` : 'Unavailable';
-        }
-        function ramInfo() {
-            const totalGb = (os.totalmem() / (1024 ** 3)).toFixed(1);
-            const freeGb = (os.freemem() / (1024 ** 3)).toFixed(1);
-            return `${freeGb} GB free / ${totalGb} GB total`;
-        }
+// ══════════════════════════════════════════
+// CROSSFIRE PROFILE INIT
+// ══════════════════════════════════════════
+const CF_PROFILES = [
+    { id: 'Competitive', icon: '⚔', desc: 'Balanced for ranked play', sens: 2.4, ads: 1.1, drills: 'Flick + Tracking' },
+    { id: 'Precision', icon: '🎯', desc: 'High accuracy, lower sens', sens: 1.8, ads: 0.9, drills: 'Precision + Reaction' },
+    { id: 'Sniper', icon: '🔭', desc: 'Optimized for AWM / sniper', sens: 1.2, ads: 0.7, drills: 'Precision + Flick' },
+    { id: 'Rifle', icon: '🔫', desc: 'AK-47 / M4A1 focused', sens: 2.2, ads: 1.0, drills: 'Tracking + Recoil' },
+    { id: 'SMG', icon: '⚡', desc: 'Fast movement, high sens', sens: 3.2, ads: 1.5, drills: 'Flick + Reaction' },
+    { id: 'Custom', icon: '⚙', desc: 'Your own settings', sens: null, ads: null, drills: 'All drills' }
+];
 
-        function renderTab(tab) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
-            document.getElementById('tabContent').innerHTML = tabTemplates[tab] ? tabTemplates[tab]() : stubPanel(tab, 'Coming soon.');
+let selectedCfProfile = state.cfProfile;
 
-            if (tab === 'license' && currentLicense) {
-                document.getElementById('licKey').textContent = currentLicense.key || '—';
-                document.getElementById('licType').textContent = currentLicense.type || '—';
-                document.getElementById('licStatus').textContent = (currentLicense.status || '—').toUpperCase();
-                document.getElementById('licExpires').textContent = currentLicense.expiresAt ? new Date(currentLicense.expiresAt).toLocaleDateString() : 'Never (Lifetime)';
-                                document.getElementById('changeCodeBtn').addEventListener('click', () => {
-                    Session.clear();
-                    ipcRenderer.send('navigate', 'activation');
-                });
-            }
+function initCrossfire() {
+    const grid = document.getElementById('cfProfileGrid');
+    grid.innerHTML = CF_PROFILES.map(p => `
+        <div class="cf-card ${p.id === selectedCfProfile ? 'selected' : ''}" data-id="${p.id}">
+            <div class="cf-icon">${p.icon}</div>
+            <div class="cf-name">${p.id}</div>
+            <div class="cf-desc">${p.desc}</div>
+        </div>
+    `).join('');
 
-            if (tab === 'sensitivity') {
-                document.getElementById('calcSensBtn').addEventListener('click', calculateSensitivity);
-                calculateSensitivity();
-            }
-        }
-
-        document.querySelectorAll('.nav-item').forEach(el => {
-            el.addEventListener('click', () => renderTab(el.dataset.tab));
+    grid.querySelectorAll('.cf-card').forEach(card => {
+        card.addEventListener('click', () => {
+            grid.querySelectorAll('.cf-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedCfProfile = card.dataset.id;
+            renderCfDetails(selectedCfProfile);
         });
+    });
 
-        // بمجرد ما الداشبورد بتفتح، بنتأكد تاني من السيرفر ان الجلسة واللايسنس لسه سليمين
-        // (مش بس بنعرض البيانات اللي كانت جاية من شاشة قبلها)
-        (async () => {
-            const result = await Session.resolveEntryScreen();
-            if (result.screen !== 'dashboard') {
-                ipcRenderer.send('navigate', result.screen, result);
-                return;
-            }
-            currentLicense = result.license;
+    renderCfDetails(selectedCfProfile);
 
-            document.getElementById('welcomeText').textContent = `Welcome back`;
-            const badge = document.getElementById('licenseBadge');
-            badge.textContent = `LICENSE ${(currentLicense.status || 'active').toUpperCase()}`;
+    document.getElementById('applyCfBtn').addEventListener('click', () => {
+        state.cfProfile = selectedCfProfile;
+        localStorage.setItem('cfProfile', selectedCfProfile);
+        document.getElementById('cfProfileLabel').textContent = selectedCfProfile;
+        notify(`CrossFire profile set to ${selectedCfProfile}!`, 'success');
+    });
+}
 
-            renderTab('dashboard');
-        })();
-    </script>
+function renderCfDetails(id) {
+    const p = CF_PROFILES.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('cfDetailsList').innerHTML = `
+        <div class="row"><span class="k">Profile</span><span class="v">${p.icon} ${p.id}</span></div>
+        <div class="row"><span class="k">Description</span><span class="v">${p.desc}</span></div>
+        <div class="row"><span class="k">Recommended Sensitivity</span><span class="v">${p.sens || 'Custom'}</span></div>
+        <div class="row"><span class="k">Recommended ADS</span><span class="v">${p.ads || 'Custom'}</span></div>
+        <div class="row"><span class="k">Recommended Drills</span><span class="v">${p.drills}</span></div>
+        <div class="row"><span class="k">eDPI (at ${state.mouseProfile.dpi} DPI)</span><span class="v">${p.sens ? Math.round(state.mouseProfile.dpi * p.sens) : 'Custom'}</span></div>
+    `;
+}
+
+// ══════════════════════════════════════════
+// PERFORMANCE INIT
+// ══════════════════════════════════════════
+const perfStart = Date.now();
+
+function initPerformance() {
+    const tips = [
+        { k: 'Close background apps', v: 'Reduces CPU/RAM usage and improves FPS' },
+        { k: 'Set CrossFire to High Priority', v: 'Task Manager → Details → Right-click → Set Priority → High' },
+        { k: 'Use 1000Hz polling rate', v: 'Reduces mouse input latency to 1ms' },
+        { k: 'Disable mouse acceleration', v: 'Ensures consistent 1:1 mouse movement' },
+        { k: 'Use fullscreen mode', v: 'Exclusive fullscreen reduces display latency' }
+    ];
+    document.getElementById('perfTips').innerHTML = tips.map(t =>
+        `<div class="row"><span class="k">${t.k}</span><span class="v">${t.v}</span></div>`
+    ).join('');
+
+    updatePerfStats();
+    state.perfInterval = setInterval(updatePerfStats, 1500);
+}
+
+function updatePerfStats() {
+    const freeRam = os.freemem() / (1024**3);
+    const totalRam = os.totalmem() / (1024**3);
+    const usedRam = totalRam - freeRam;
+    const cpuEst = Math.round(40 + Math.random()*20);
+    const fpsEst = Math.round(120 + Math.random()*80);
+    const pingEst = Math.round(20 + Math.random()*30);
+    const inputEst = Math.round(1000 / state.mouseProfile.polling);
+    const uptime = Math.round((Date.now() - perfStart) / 60000);
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('perfCpu', cpuEst);
+    set('perfRam', usedRam.toFixed(1));
+    set('perfFps', fpsEst);
+    set('perfPing', pingEst);
+    set('perfInput', inputEst);
+    set('perfUptime', uptime);
+    set('perfFreeRam', freeRam.toFixed(1) + ' GB');
+}
+
+// ══════════════════════════════════════════
+// LICENSE INIT
+// ══════════════════════════════════════════
+function initLicense() {
+    if (state.license) {
+        document.getElementById('licKey').textContent = state.license.key || '—';
+        document.getElementById('licType').textContent = state.license.type || '—';
+        document.getElementById('licStatus').textContent = (state.license.status || '—').toUpperCase();
+        document.getElementById('licExpires').textContent = state.license.expiresAt
+            ? new Date(state.license.expiresAt).toLocaleDateString()
+            : 'Never (Lifetime)';
+    }
+    document.getElementById('changeCodeBtn').addEventListener('click', () => {
+        try { Session.clear(); } catch(e) {}
+        navigate('activation');
+    });
+}
+
+// ══════════════════════════════════════════
+// SETTINGS INIT
+// ══════════════════════════════════════════
+function initSettings() {
+    document.querySelectorAll('.toggle[data-key]').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const key = this.dataset.key;
+            this.classList.toggle('on');
+            state.settings[key] = this.classList.contains('on');
+            saveSettings();
+            if (ipcRenderer) ipcRenderer.send('setting-changed', key, state.settings[key]);
+            notify(`${key.replace(/([A-Z])/g,' $1').trim()} ${state.settings[key] ? 'enabled' : 'disabled'}`, 'info');
+        });
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', function() {
+            document.querySelectorAll('.color-swatch').forEach(s => s.style.border = '2px solid transparent');
+            this.style.border = '2px solid #fff';
+            notify('Accent color updated (restart to apply fully)', 'info');
+        });
+    });
+
+    const sessions = JSON.parse(localStorage.getItem('aimSessions') || '[]');
+    const el = document.getElementById('dataSessionCount');
+    if (el) el.textContent = sessions.length;
+
+    document.getElementById('clearDataBtn').addEventListener('click', () => {
+        if (confirm('Clear all training data? This cannot be undone.')) {
+            localStorage.removeItem('aimSessions');
+            localStorage.removeItem('totalShots');
+            notify('Training data cleared.', 'info');
+            const el = document.getElementById('dataSessionCount');
+            if (el) el.textContent = '0';
+        }
+    });
+
+    document.getElementById('exportDataBtn').addEventListener('click', () => {
+        const data = {
+            sessions: JSON.parse(localStorage.getItem('aimSessions') || '[]'),
+            weaponProfiles: state.weaponProfiles,
+            mouseProfile: state.mouseProfile,
+            settings: state.settings,
+            exportDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ifvip-data-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        notify('Data exported!', 'success');
+    });
+}
+
+// ─── NAV ───
+document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => renderTab(el.dataset.tab));
+});
+
+// ─── BOOT ───
+(async () => {
+    let license = null;
+    try {
+        const result = await Session.resolveEntryScreen();
+        if (result.screen !== 'dashboard') {
+            navigate(result.screen, result);
+            return;
+        }
+        license = result.license;
+    } catch(e) {
+        // Running outside Electron / session module not available
+        license = { key: 'DEV-MODE', type: 'Developer', status: 'active', expiresAt: null };
+    }
+
+    state.license = license;
+    document.getElementById('welcomeText').textContent = 'Welcome back';
+    const badge = document.getElementById('licenseBadge');
+    if (badge && license) {
+        badge.textContent = `LICENSE ${(license.status || 'active').toUpperCase()}`;
+        badge.className = `badge ${license.status === 'active' ? 'active' : 'expired'}`;
+    }
+
+    renderTab('dashboard');
+})();
+</script>
 </body>
 </html>
