@@ -108,7 +108,39 @@
                     <p class="placeholder-note" id="cfDetectionStatus">Not currently monitoring — CrossFire process detection module is not wired into this build yet.</p>
                 </div>
             `,
-            mouse: () => stubPanel('Mouse Center', 'Detects your connected mouse and lets you build DPI / polling-rate / sensitivity profiles using legitimate Windows input APIs. This module is scaffolded but not implemented in this build yet.'),
+            mouse: () => `
+    <div class="panel">
+        <h2>Windows Mouse Settings</h2>
+        <p class="placeholder-note">Read directly from Windows via the registry (legitimate OS API — not vendor-specific hardware access).</p>
+        <div class="info-list" id="mouseSysInfo"></div>
+    </div>
+    <div class="panel">
+        <h2>Mouse Profiles</h2>
+        <p class="placeholder-note">Enter your mouse's DPI and polling rate manually (from your mouse software or box), then save a named profile. IF-VIP has no generic way to read real hardware DPI from arbitrary mouse brands — only the manufacturer's own software can do that.</p>
+        <div class="sens-grid">
+            <div class="field">
+                <label>Profile Name</label>
+                <input type="text" id="mpName" placeholder="e.g. Competitive">
+            </div>
+            <div class="field">
+                <label>DPI</label>
+                <input type="number" id="mpDpi" value="800" min="100" step="50">
+            </div>
+            <div class="field">
+                <label>Polling Rate (Hz)</label>
+                <select id="mpPolling">
+                    <option>125</option><option>250</option><option>500</option><option selected>1000</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-primary" id="mpSaveBtn" style="margin-top:14px;">SAVE PROFILE</button>
+
+        <table class="wp-table" id="mpTable">
+            <thead><tr><th>Name</th><th>DPI</th><th>Polling</th><th></th></tr></thead>
+            <tbody id="mpTableBody"></tbody>
+        </table>
+    </div>
+`,
             weapons: () => stubPanel('Weapon Profiles', 'Create a separate sensitivity + ADS profile per weapon category (AK-47, M4A1, AWM, SMG...). Stored locally as IF-VIP profiles — never modifies CrossFire itself.'),
             aim: () => stubPanel('Aim Trainer', 'Flick, tracking, precision, reaction-time, and target-switching drills with scoring and history. Training module scaffolding pending.'),
             recoil: () => stubPanel('Recoil Trainer', 'A controlled practice environment showing weapon recoil patterns so you can manually train control — IF-VIP never auto-compensates recoil in the live game.'),
